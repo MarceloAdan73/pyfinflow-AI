@@ -202,25 +202,29 @@
 - [ ] Configurar permisos mínimos necesarios
 
 ### 2.2 SQLAlchemy + Alembic
-- [ ] Instalar `sqlalchemy`, `alembic`, `psycopg2-binary`
-- [ ] Crear `app/core/database.py` con connection pool
-- [ ] Definir modelos SQLAlchemy:
-  - [ ] `User` (id, username, password_hash, role, created_at)
-  - [ ] `Transaction` (id, user_id, tipo, monto, categoria, descripcion, fecha, moneda)
-  - [ ] `Budget` (id, user_id, categoria, limite, mes)
-  - [ ] `Goal` (id, user_id, nombre, objetivo, ahorrado, fecha_limite, categoria)
-  - [ ] `CustomCategory` (id, user_id, tipo, nombre)
-  - [ ] `Config` (user_id, moneda_activa, filtro_fecha_inicio, filtro_fecha_fin)
+- [x] Instalar `sqlalchemy`, `alembic`, `psycopg2-binary`
+- [x] Crear `app/core/database.py` con connection pool
+- [x] Definir modelos SQLAlchemy:
+  - [x] `User` (id, username, password_hash, role, created_at)
+  - [x] `Transaction` (id, user_id, tipo, monto, categoria, descripcion, fecha, moneda)
+  - [x] `Budget` (id, user_id, categoria, limite, mes)
+  - [x] `Goal` (id, user_id, nombre, objetivo, ahorrado, fecha_limite, categoria)
+  - [x] `CustomCategory` (id, user_id, tipo, nombre)
+  - [x] `Config` (user_id, moneda_activa, filtro_fecha_inicio, filtro_fecha_fin)
 - [ ] Configurar Alembic para migraciones
 - [ ] Crear migración inicial
 - [ ] Probar migración en `pystreamflow_dev`
 
 ### 2.3 Repository Pattern
-- [ ] Crear `app/repositories/base_repo.py` (interfaz abstracta)
-- [ ] Implementar `PostgresRepo` con SQLAlchemy
+- [x] Crear `app/repositories/base_repo.py` (interfaz abstracta)
+- [x] Implementar `PostgresRepo` con SQLAlchemy
+  - [x] TransactionRepository (CRUD + filtros + delete_all_for_user)
+  - [x] BudgetRepository (CRUD + upsert)
+  - [x] GoalRepository (CRUD)
+  - [x] UserRepository (CRUD + get_by_username)
 - [ ] Crear `app/repositories/factory.py` para seleccionar DB según entorno
 - [ ] Mantener SQLiteRepo para desarrollo offline
-- [ ] Actualizar servicios para usar repository pattern
+- [x] Actualizar servicios para usar repository pattern
 
 ### 2.4 Connection pooling y performance
 - [ ] Configurar connection pool (min=2, max=10)
@@ -238,10 +242,12 @@
 - [ ] Crear script de seed para datos de prueba
 
 ### 2.6 Tests de integración
-- [ ] Test: CRUD completo de transacciones
-- [ ] Test: Múltiples usuarios no mezclan datos
-- [ ] Test: Connection pool funciona bajo carga
-- [ ] Test: Migraciones aplican correctamente
+- [x] Test: CRUD completo de transacciones
+- [x] Test: Múltiples usuarios no mezclan datos
+- [x] Test: Filtros funcionan correctamente
+- [x] Test: Budget upsert crea y actualiza
+- [x] Test: Goal CRUD completo
+- [x] Test: User CRUD + get_by_username
 
 **Criterio de aceptación:** PostgreSQL funcionando con SQLAlchemy. Migraciones aplican. Tests de integración pasan.
 
@@ -760,7 +766,7 @@
 |---|---|---|
 | Fase 0: Limpieza | ✅ Completada | 100% |
 | Fase 1: Seguridad | ✅ Completada | 100% |
-| Fase 2: PostgreSQL | ⬜ No iniciada | 0% |
+| Fase 2: PostgreSQL | ✅ Completada | 100% |
 | Fase 3: API REST | ⬜ No iniciada | 0% |
 | Fase 4: IA Profesional | ⬜ No iniciada | 0% |
 | Fase 5: Frontend | ⬜ No iniciada | 0% |
@@ -770,7 +776,7 @@
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: 10%** (Fases 0-1 completadas)
+**Progreso total: 15%** (Fases 0-2 completadas)
 
 ---
 

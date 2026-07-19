@@ -20,6 +20,9 @@ build/
 # Token de HuggingFace
 .env
 
+# Alembic (contiene DB URL en texto plano)
+alembic.ini
+
 # Streamlit secrets
 .streamlit/
 
