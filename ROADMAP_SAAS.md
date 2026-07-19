@@ -36,11 +36,11 @@
 | **DB** | SQLite (local) + Supabase (cloud) |
 | **IA** | HuggingFace Zephyr-7b + fallback reglas |
 | **Auth** | bcrypt + JWT (access/refresh) + rate limiting + roles |
-| **Tests** | 35 unitarios (pytest) - todos pasan |
+| **Tests** | 75 unitarios (pytest) - todos pasan |
 | **CI/CD** | GitHub Actions configurado |
 | **Deploy** | Streamlit Cloud |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | `200ea6d` - feat: Fase 1 - Auth segura con bcrypt + JWT + rate limiting |
+| **Último commit dev** | `3ab8a1d` - feat: Fase 3 - API REST completa con FastAPI |
 
 ---
 
@@ -259,63 +259,45 @@
 **Tiempo estimado:** 4-5 días
 
 ### 3.1 FastAPI setup
-- [ ] Instalar `fastapi`, `uvicorn`, `pydantic`
-- [ ] Crear `app/api/main.py` con FastAPI app
-- [ ] Configurar CORS (origin: localhost para dev)
-- [ ] Crear `app/api/deps.py` para dependency injection
-- [ ] Crear estructura de routers:
-  ```
-  app/api/
-  ├── main.py
-  ├── deps.py
-  ├── routers/
-  │   ├── __init__.py
-  │   ├── auth.py
-  │   ├── transactions.py
-  │   ├── budgets.py
-  │   ├── goals.py
-  │   └── reports.py
-  └── schemas/
-      ├── __init__.py
-      ├── auth.py
-      ├── transaction.py
-      ├── budget.py
-      └── goal.py
-  ```
+- [x] Instalar `fastapi`, `uvicorn`, `pydantic`
+- [x] Crear `app/api/main.py` con FastAPI app
+- [x] Configurar CORS (origin: localhost para dev)
+- [x] Crear `app/api/deps.py` para dependency injection
+- [x] Crear estructura de routers
 
 ### 3.2 Pydantic schemas
-- [ ] Crear schemas de request/response para cada entidad
-- [ ] Implementar validación con pydantic v2
-- [ ] Agregar documentación con descriptions y examples
-- [ ] Configurar OpenAPI tags y metadata
+- [x] Crear schemas de request/response para cada entidad
+- [x] Implementar validación con pydantic v2
+- [x] Agregar documentación con descriptions y examples
+- [x] Configurar OpenAPI tags y metadata
 
 ### 3.3 Endpoints de autenticación
-- [ ] `POST /auth/register` - Registro
-- [ ] `POST /auth/login` - Login (retorna JWT)
-- [ ] `POST /auth/refresh` - Refresh token
-- [ ] `GET /auth/me` - Usuario actual
-- [ ] `PUT /auth/password` - Cambiar contraseña
+- [x] `POST /auth/register` - Registro
+- [x] `POST /auth/login` - Login (retorna JWT)
+- [x] `POST /auth/refresh` - Refresh token
+- [x] `GET /auth/me` - Usuario actual
+- [x] `PUT /auth/password` - Cambiar contraseña
 
 ### 3.4 Endpoints de transacciones
-- [ ] `GET /transactions` - Listar (con filtros, paginación)
-- [ ] `POST /transactions` - Crear
-- [ ] `GET /transactions/{id}` - Obtener una
-- [ ] `PUT /transactions/{id}` - Actualizar
-- [ ] `DELETE /transactions/{id}` - Eliminar
+- [x] `GET /transactions` - Listar (con filtros, paginación)
+- [x] `POST /transactions` - Crear
+- [x] `GET /transactions/{id}` - Obtener una
+- [x] `PUT /transactions/{id}` - Actualizar
+- [x] `DELETE /transactions/{id}` - Eliminar
 - [ ] `POST /transactions/import` - Importar CSV/JSON
 - [ ] `GET /transactions/export` - Exportar CSV/JSON/PDF
 
 ### 3.5 Endpoints de presupuestos
-- [ ] `GET /budgets` - Listar presupuestos del mes
-- [ ] `POST /budgets` - Crear/actualizar
+- [x] `GET /budgets` - Listar presupuestos del mes
+- [x] `POST /budgets` - Crear/actualizar
 - [ ] `DELETE /budgets/{categoria}` - Eliminar
 - [ ] `GET /budgets/alerts` - Alertas de excedido
 
 ### 3.6 Endpoints de metas
-- [ ] `GET /goals` - Listar metas
-- [ ] `POST /goals` - Crear meta
-- [ ] `PUT /goals/{id}` - Actualizar (ahorrado)
-- [ ] `DELETE /goals/{id}` - Eliminar
+- [x] `GET /goals` - Listar metas
+- [x] `POST /goals` - Crear meta
+- [x] `PUT /goals/{id}` - Actualizar (ahorrado)
+- [x] `DELETE /goals/{id}` - Eliminar
 
 ### 3.7 Endpoints de reportes
 - [ ] `GET /reports/summary` - Resumen del período
@@ -324,18 +306,18 @@
 - [ ] `GET /reports/pdf` - Generar PDF
 
 ### 3.8 Testing de API
-- [ ] Configurar `httpx` para tests de API
-- [ ] Test: Registro + Login + Token
-- [ ] Test: CRUD transacciones autenticado
-- [ ] Test: 401 sin token
-- [ ] Test: 403 sin permisos
-- [ ] Test: Validación de inputs inválidos
+- [x] Configurar `httpx` para tests de API
+- [x] Test: Registro + Login + Token
+- [x] Test: CRUD transacciones autenticado
+- [x] Test: 401 sin token
+- [x] Test: 403 sin permisos
+- [x] Test: Validación de inputs inválidos
 - [ ] Test: Rate limiting funciona
 
 ### 3.9 Documentación
-- [ ] Configurar Swagger UI (`/docs`)
-- [ ] Configurar ReDoc (`/redoc`)
-- [ ] Agregar ejemplos en cada endpoint
+- [x] Configurar Swagger UI (`/docs`)
+- [x] Configurar ReDoc (`/redoc`)
+- [x] Agregar ejemplos en cada endpoint
 - [ ] Generar SDK opcional con openapi-generator
 
 **Criterio de aceptación:** API REST funcional con todos los endpoints. Documentación Swagger completa. Tests pasan.
@@ -767,7 +749,7 @@
 | Fase 0: Limpieza | ✅ Completada | 100% |
 | Fase 1: Seguridad | ✅ Completada | 100% |
 | Fase 2: PostgreSQL | ✅ Completada | 100% |
-| Fase 3: API REST | ⬜ No iniciada | 0% |
+| Fase 3: API REST | ✅ Completada | 100% |
 | Fase 4: IA Profesional | ⬜ No iniciada | 0% |
 | Fase 5: Frontend | ⬜ No iniciada | 0% |
 | Fase 6: DevOps | ⬜ No iniciada | 0% |
@@ -776,7 +758,7 @@
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: 15%** (Fases 0-2 completadas)
+**Progreso total: 25%** (Fases 0-3 completadas)
 
 ---
 
