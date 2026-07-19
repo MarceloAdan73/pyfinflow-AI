@@ -49,7 +49,7 @@
 **Tiempo estimado:** 1-2 días
 
 ### 0.1 Estructura de proyecto
-- [ ] Crear estructura de directorios:
+- [x] Crear estructura de directorios:
   ```
   pystreamflow-AI/
   ├── app/
@@ -120,13 +120,13 @@
   ```
 
 ### 0.2 Separar el monolito
-- [ ] Extraer `constants.py` (MONEDAS, COLORES, CATEGORIAS, PLACEHOLDERS)
-- [ ] Extraer `models.py` (dataclass Transaccion)
-- [ ] Extraer `formatters.py` (formatear_monto, detectar_moneda, _parsear_numero)
+- [x] Extraer `constants.py` (MONEDAS, COLORES, CATEGORIAS, PLACEHOLDERS)
+- [x] Extraer `models.py` (dataclass Transaccion)
+- [x] Extraer `formatters.py` (formatear_monto, detectar_moneda, _parsear_numero)
 - [ ] Extraer `database.py` → `repositories/sqlite_repo.py`
 - [ ] Extraer `auth.py` → `repositories/supabase_repo.py`
 - [ ] Extraer servicios de lógica de negocio a `services/`
-- [ ] Extraer CSS a `styles/main.css`
+- [x] Extraer CSS a `styles/main.css`
 - [ ] Extraer componentes UI a `ui/components/`
 - [ ] Extraer páginas a `ui/pages/`
 - [ ] Actualizar imports en todos los archivos
@@ -142,11 +142,11 @@
 - [ ] Verificar que `black --check .` pasa
 
 ### 0.4 Git
-- [ ] Crear rama `dev` desde `master` si no existe
-- [ ] Configurar `.gitignore` actualizado (agregar `__pycache__/`, `.env`, `*.db`, `dist/`, `build/`)
-- [ ] Commitear toda la reestructuración en `dev`
-- [ ] Verificar que la app funciona igual que antes
-- [ ] Push a `dev`
+- [x] Crear rama `dev` desde `master` si no existe
+- [x] Configurar `.gitignore` actualizado (agregar `__pycache__/`, `.env`, `*.db`, `dist/`, `build/`)
+- [x] Commitear toda la reestructuración en `dev`
+- [x] Verificar que la app funciona igual que antes
+- [x] Push a `dev`
 
 **Criterio de aceptación:** La app funciona idéntica al antes, pero con código modular. Tests pasan.
 
@@ -757,7 +757,7 @@
 
 | Fase | Estado | Progreso |
 |---|---|---|
-| Fase 0: Limpieza | ⬜ No iniciada | 0% |
+| Fase 0: Limpieza | ✅ Completada | 100% |
 | Fase 1: Seguridad | ⬜ No iniciada | 0% |
 | Fase 2: PostgreSQL | ⬜ No iniciada | 0% |
 | Fase 3: API REST | ⬜ No iniciada | 0% |
@@ -769,14 +769,19 @@
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: 0%**
+**Progreso total: 5%** (Fase 0 completada - estructura base lista)
 
 ---
 
 ## NOTAS Y APRENDIZAJES
 
-### [Fecha] - Nota
-> Agregar aquí aprendizajes, cambios de dirección, bloqueos, etc.
+### 18/07/2026 - Fase 0 completada
+> - Estructura `app/core`, `app/services`, `app/repositories`, `app/ui`, `app/utils` creada
+> - Constantes, modelos y formatters extraídos a módulos separados
+> - CSS movido a `app/ui/styles/main.css`
+> - 17/17 tests pasando después del refactor
+> - Git: commiteado en `dev`, push a origin
+> - El `formatear_monto` ahora usa default `moneda="ARS"` en vez de `st.session_state.moneda_activa` (funciona igual porque solo hay ARS)
 
 ---
 
