@@ -57,67 +57,64 @@
   │   ├── __init__.py
   │   ├── core/
   │   │   ├── __init__.py
-  │   │   ├── config.py          # Constantes, settings
-  │   │   ├── models.py          # Dataclasses, schemas
-  │   │   └── constants.py       # MONEDAS, COLORES, CATEGORIAS
-  │   ├── services/
+  │   │   ├── auth.py              # bcrypt + JWT + rate limiting + roles
+  │   │   ├── config.py            # DATABASE_URL, engine options
+  │   │   ├── constants.py         # MONEDAS, COLORES, CATEGORIAS
+  │   │   ├── database.py          # SQLAlchemy engine, SessionLocal, get_db
+  │   │   ├── models.py            # Transaccion dataclass, iconos
+  │   │   └── models_db.py         # SQLAlchemy ORM: User, Transaction, Budget, Goal, CustomCategory, UserConfig
+  │   ├── api/
   │   │   ├── __init__.py
-  │   │   ├── transaction_service.py
-  │   │   ├── budget_service.py
-  │   │   ├── goal_service.py
-  │   │   └── ai_service.py
+  │   │   ├── main.py              # FastAPI app, CORS, routers
+  │   │   ├── deps.py              # dependency injection (get_db, get_current_user, get_repositories)
+  │   │   ├── routers/
+  │   │   │   ├── __init__.py
+  │   │   │   ├── auth.py          # /auth: register, login, refresh, me, password
+  │   │   │   ├── transactions.py  # /transactions: CRUD + filtros + paginación
+  │   │   │   ├── budgets.py       # /budgets: CRUD + upsert
+  │   │   │   └── goals.py         # /goals: CRUD
+  │   │   └── schemas/
+  │   │       ├── __init__.py
+  │   │       ├── auth.py          # UserRegister, UserLogin, TokenResponse, etc.
+  │   │       ├── transaction.py   # TransactionCreate, TransactionUpdate, TransactionResponse
+  │   │       ├── budget.py        # BudgetCreate, BudgetResponse, BudgetAlert
+  │   │       └── goal.py          # GoalCreate, GoalUpdate, GoalResponse
   │   ├── repositories/
   │   │   ├── __init__.py
-  │   │   ├── sqlite_repo.py
-  │   │   └── supabase_repo.py
+  │   │   ├── base_repo.py         # BaseRepository (interfaz abstracta CRUD)
+  │   │   ├── factory.py           # RepositoryFactory (punto de acceso unificado)
+  │   │   └── postgres_repo.py     # TransactionRepo, BudgetRepo, GoalRepo, UserRepository
+  │   ├── services/
+  │   │   └── __init__.py
   │   ├── ui/
   │   │   ├── __init__.py
-  │   │   ├── components/
-  │   │   │   ├── chat.py
-  │   │   │   ├── sidebar.py
-  │   │   │   ├── navigation.py
-  │   │   │   └── cards.py
-  │   │   ├── pages/
-  │   │   │   ├── dashboard.py
-  │   │   │   ├── new_transaction.py
-  │   │   │   ├── history.py
-  │   │   │   ├── charts.py
-  │   │   │   ├── budgets.py
-  │   │   │   ├── goals.py
-  │   │   │   └── migrate.py
+  │   │   ├── components/__init__.py
+  │   │   ├── pages/__init__.py
   │   │   └── styles/
   │   │       └── main.css
   │   └── utils/
   │       ├── __init__.py
-  │       ├── formatters.py
-  │       ├── validators.py
-  │       └── pdf_generator.py
+  │       └── formatters.py
   ├── tests/
-  │   ├── __init__.py
-  │   ├── unit/
-  │   │   ├── test_formatters.py
-  │   │   ├── test_models.py
-  │   │   └── test_services.py
-  │   └── integration/
-  │       └── test_database.py
-  ├── config/
-  │   ├── .env.example
-  │   └── streamlit/
-  │       └── config.toml
-  ├── scripts/
-  │   ├── run.sh
-  │   └── run.bat
-  ├── assets/
-  ├── static/
-  ├── .github/
-  │   └── workflows/
-  ├── ROADMAP_SAAS.md            # Este archivo
+  │   └── unit/
+  │       ├── test_api.py           # 27 tests de API (FastAPI TestClient)
+  │       ├── test_auth.py          # 18 tests de seguridad (bcrypt, JWT, rate limiting)
+  │       └── test_repositories.py  # 13 tests de repositorios (SQLite en memoria)
+  ├── alembic/
+  │   ├── env.py
+  │   ├── script.py.mako
+  │   └── versions/
+  │       └── 001_initial_schema.py  # Migración inicial (6 tablas)
+  ├── pystreamflow.py               # App Streamlit principal (~2972 líneas)
+  ├── test_app.py                    # 17 tests unitarios originales
+  ├── auth.py                        # Legacy auth (Supabase, pendiente de eliminar)
+  ├── database.py                    # Legacy SQLite (pendiente de eliminar)
+  ├── .env.example
+  ├── .gitignore
   ├── pyproject.toml
   ├── requirements.txt
-  ├── requirements-dev.txt
-  ├── Dockerfile
-  ├── docker-compose.yml
-  └── README.md
+  ├── README.md
+  └── ROADMAP_SAAS.md               # Este archivo
   ```
 
 ### 0.2 Separar el monolito
@@ -200,6 +197,7 @@
 - [ ] Crear base de datos `pystreamflow_dev`
 - [ ] Crear usuario dedicado `pystreamflow_user`
 - [ ] Configurar permisos mínimos necesarios
+- **Nota:** psycopg2 + Python 3.14 tiene error UTF-8 al conectar. Pendiente resolver.
 
 ### 2.2 SQLAlchemy + Alembic
 - [x] Instalar `sqlalchemy`, `alembic`, `psycopg2-binary`
@@ -211,9 +209,9 @@
   - [x] `Goal` (id, user_id, nombre, objetivo, ahorrado, fecha_limite, categoria)
   - [x] `CustomCategory` (id, user_id, tipo, nombre)
   - [x] `Config` (user_id, moneda_activa, filtro_fecha_inicio, filtro_fecha_fin)
-- [ ] Configurar Alembic para migraciones
-- [ ] Crear migración inicial
-- [ ] Probar migración en `pystreamflow_dev`
+- [x] Configurar Alembic para migraciones
+- [x] Crear migración inicial (`001_initial_schema.py` - 6 tablas, 3 indexes, 2 unique constraints)
+- [ ] Probar migración en `pystreamflow_dev` (bloqueado: psycopg2 + Python 3.14 UTF-8 error)
 
 ### 2.3 Repository Pattern
 - [x] Crear `app/repositories/base_repo.py` (interfaz abstracta)
@@ -221,8 +219,8 @@
   - [x] TransactionRepository (CRUD + filtros + delete_all_for_user)
   - [x] BudgetRepository (CRUD + upsert)
   - [x] GoalRepository (CRUD)
-  - [x] UserRepository (CRUD + get_by_username)
-- [ ] Crear `app/repositories/factory.py` para seleccionar DB según entorno
+  - [x] UserRepository (CRUD + get_by_username + _to_dict_full para login)
+- [x] Crear `app/repositories/factory.py` para seleccionar DB según entorno
 - [ ] Mantener SQLiteRepo para desarrollo offline
 - [x] Actualizar servicios para usar repository pattern
 
@@ -831,6 +829,129 @@ tests/unit/test_auth.py    → 18 tests de seguridad
 
 #### Total tests: 35/35 pasando
 
+### 19/07/2026 - Fase 2 completada (2 commits en dev)
+
+**Commit 1:** `76495c6` - feat: Fase 2 - SQLAlchemy models + Repository Pattern
+**Commit 2:** `be1a867` - feat: Fase 2 completa - Alembic + Factory + migrations
+
+#### Archivos creados:
+```
+app/core/config.py           → DATABASE_URL, SQLALCHEMY_ENGINE_OPTIONS
+app/core/database.py         → engine, SessionLocal, init_db(), get_db_session(), get_db()
+app/core/models_db.py        → User, Transaction, Budget, Goal, CustomCategory, UserConfig (SQLAlchemy ORM)
+app/repositories/base_repo.py → BaseRepository (interfaz abstracta CRUD)
+app/repositories/postgres_repo.py → TransactionRepo, BudgetRepo, GoalRepo, UserRepository
+app/repositories/factory.py  → RepositoryFactory (punto de acceso unificado a repos)
+alembic/                     → Configuración de Alembic
+alembic/versions/001_initial_schema.py → Migración inicial (6 tablas)
+tests/unit/test_repositories.py → 13 tests de repositorios con SQLite en memoria
+```
+
+#### Modelos SQLAlchemy (6 tablas):
+| Tabla | Columnas | Constraints |
+|---|---|---|
+| `users` | id, username, password_hash, role, created_at | UNIQUE(username), INDEX(username) |
+| `transactions` | id, user_id, tipo, monto, categoria, descripcion, fecha, moneda, created_at | FK(users), INDEX(user_id, fecha), INDEX(user_id, tipo) |
+| `budgets` | id, user_id, categoria, limite, mes, created_at | FK(users), UNIQUE(user_id, categoria, mes) |
+| `goals` | id, user_id, nombre, objetivo, ahorrado, fecha_limite, categoria, created_at | FK(users) |
+| `custom_categories` | id, user_id, tipo, nombre | FK(users), UNIQUE(user_id, tipo, nombre) |
+| `user_configs` | user_id, moneda_activa, filtro_fecha_inicio, filtro_fecha_fin | FK(users), PK(user_id) |
+
+#### Repository Pattern:
+- `BaseRepository` define interfaz abstracta: `create()`, `get_by_id()`, `get_all()`, `update()`, `delete()`
+- `UserRepository` agrega `get_by_username()` y `_to_dict_full()` (incluye password_hash para login)
+- `BudgetRepository` agrega `upsert()` (inserta o actualiza)
+- `TransactionRepository` agrega `delete_all_for_user()` y filtros por user_id, tipo, categoria, fecha
+
+#### Alembic:
+- Migration `001_initial_schema.py` creada manualmente (no autogenerate porque psycopg2 falla con Python 3.14)
+- Crea las 6 tablas con sus constraints e indexes
+
+#### Bloqueador conocido:
+- **psycopg2 + Python 3.14 en Windows**: Error `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf3`
+- Impide: `alembic upgrade head`, `alembic revision --autogenerate`, conexión directa a PostgreSQL
+- Workaround: Tests usan SQLite en memoria, migration escrita a mano
+- Pendiente de resolver (posible upgrade psycopg2 o usar asyncpg)
+
+#### Total tests: 48/48 pasando (17 originales + 18 auth + 13 repos)
+
+### 19/07/2026 - Fase 3 completada (2 commits en dev)
+
+**Commit 1:** `3ab8a1d` - feat: Fase 3 - API REST completa con FastAPI
+**Commit 2:** `9f273a3` - docs: actualizar roadmap - Fase 3 completada
+
+#### Archivos creados:
+```
+app/api/__init__.py
+app/api/main.py              → FastAPI app, CORS, routers, /health endpoint
+app/api/deps.py              → get_repositories(), get_current_user(), get_current_admin()
+app/api/routers/__init__.py
+app/api/routers/auth.py      → /auth: register, login, refresh, me, password
+app/api/routers/transactions.py → /transactions: CRUD + filtros + paginación
+app/api/routers/budgets.py   → /budgets: CRUD + upsert
+app/api/routers/goals.py     → /goals: CRUD
+app/api/schemas/__init__.py
+app/api/schemas/auth.py      → UserRegister, UserLogin, TokenResponse, RefreshRequest, UserResponse, PasswordChange
+app/api/schemas/transaction.py → TransactionCreate, TransactionUpdate, TransactionResponse, TransactionFilter
+app/api/schemas/budget.py    → BudgetCreate, BudgetResponse, BudgetAlert
+app/api/schemas/goal.py      → GoalCreate, GoalUpdate, GoalResponse
+tests/unit/test_api.py       → 27 tests de API con FastAPI TestClient + SQLite en memoria
+```
+
+#### API REST - Endpoints implementados:
+| Método | Endpoint | Descripción | Auth |
+|---|---|---|---|
+| GET | `/health` | Health check | No |
+| POST | `/auth/register` | Registro (retorna JWT) | No |
+| POST | `/auth/login` | Login (retorna JWT + refresh) | No |
+| POST | `/auth/refresh` | Renueva access token | No |
+| GET | `/auth/me` | Usuario actual | Sí |
+| PUT | `/auth/password` | Cambiar contraseña | Sí |
+| GET | `/transactions` | Listar (filtros: tipo, categoria, fecha) | Sí |
+| POST | `/transactions` | Crear transacción | Sí |
+| GET | `/transactions/{id}` | Obtener una | Sí |
+| PUT | `/transactions/{id}` | Actualizar | Sí |
+| DELETE | `/transactions/{id}` | Eliminar | Sí |
+| GET | `/budgets?mes=YYYY-MM` | Listar presupuestos del mes | Sí |
+| POST | `/budgets` | Crear/actualizar (upsert) | Sí |
+| GET | `/goals` | Listar metas | Sí |
+| POST | `/goals` | Crear meta | Sí |
+| PUT | `/goals/{id}` | Actualizar (ahorrado, nombre, etc.) | Sí |
+| DELETE | `/goals/{id}` | Eliminar meta | Sí |
+
+#### Dependency Injection:
+- `get_db()` → sesión SQLAlchemy (override en tests con SQLite en memoria)
+- `get_repositories()` → `RepositoryFactory` con todas las sesiones
+- `get_current_user()` → valida JWT Bearer token, retorna usuario
+- `get_current_admin()` → valida que sea ADMIN
+
+#### Pydantic v2 Schemas:
+- Validación con `Field(min_length, max_length, pattern, gt, ge)`
+- `examples` para documentación Swagger automática
+- `model_dump(exclude_unset=True)` para updates parciales
+
+#### Testes de API (27):
+- 1 test health check
+- 5 tests auth (register, duplicate, short fields)
+- 3 tests login (success, wrong password, nonexistent)
+- 2 tests refresh (success, invalid)
+- 3 tests me (success, no token, invalid)
+- 7 tests transactions (CRUD, filtros, unauthorized)
+- 3 tests budgets (create, upsert, list)
+- 4 tests goals (create, update, delete, list)
+
+#### Swagger/ReDoc:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+- Metadata: title "PyStreamFlow API", version "2.0.0"
+
+#### Para ejecutar la API:
+```bash
+uvicorn app.api.main:app --reload --port 8000
+```
+
+#### Total tests: 75/75 pasando (17 originales + 18 auth + 13 repos + 27 API)
+
 ---
 
 ## COMANDOS RÁPIDOS
@@ -893,4 +1014,4 @@ git push origin main
 ---
 
 *Documento creado el 18/07/2026 para PyStreamFlow-AI.*
-*Última actualización: 18/07/2026.*
+*Última actualización: 19/07/2026.*
