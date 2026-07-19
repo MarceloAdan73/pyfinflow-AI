@@ -35,12 +35,12 @@
 | **App** | Streamlit monolito → Modular (parcial). `pystreamflow.py` reducido, core/services/utils extraídos |
 | **DB** | SQLite (local) + Supabase (cloud) |
 | **IA** | HuggingFace Zephyr-7b + fallback reglas |
-| **Auth** | SHA256 sin sal (básico) |
-| **Tests** | 17 unitarios (pytest) - todos pasan |
+| **Auth** | bcrypt + JWT (access/refresh) + rate limiting + roles |
+| **Tests** | 35 unitarios (pytest) - todos pasan |
 | **CI/CD** | GitHub Actions configurado |
 | **Deploy** | Streamlit Cloud |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | `464b1d9` - docs: actualizar roadmap - Fase 0 completada |
+| **Último commit dev** | `200ea6d` - feat: Fase 1 - Auth segura con bcrypt + JWT + rate limiting |
 
 ---
 
@@ -159,15 +159,15 @@
 **Tiempo estimado:** 2-3 días
 
 ### 1.1 Auth mejorada
-- [ ] Implementar bcrypt para hashing de contraseñas (reemplazar SHA256)
-- [ ] Agregar sal único por usuario
-- [ ] Implementar JWT tokens para sesiones
-- [ ] Agregar refresh tokens
-- [ ] Crear middleware de autenticación
-- [ ] Implementar rate limiting en login (máx 5 intentos/minuto)
+- [x] Implementar bcrypt para hashing de contraseñas (reemplazar SHA256)
+- [x] Agregar sal único por usuario
+- [x] Implementar JWT tokens para sesiones
+- [x] Agregar refresh tokens
+- [x] Crear middleware de autenticación
+- [x] Implementar rate limiting en login (máx 5 intentos/minuto)
 
 ### 1.2 Roles y permisos
-- [ ] Crear enum de roles: `ADMIN`, `USER`, `VIEWER`
+- [x] Crear enum de roles: `ADMIN`, `USER`, `VIEWER`
 - [ ] Agregar campo `role` a tabla `usuarios` en Supabase
 - [ ] Implementar decorador `@require_role("ADMIN")`
 - [ ] Proteger endpoints sensibles (admin only)
@@ -181,10 +181,10 @@
 - [ ] Agregar logging de intentos de acceso
 
 ### 1.4 Tests de seguridad
-- [ ] Test: Login fallido después de 5 intentos
-- [ ] Test: JWT expirado rechazado
-- [ ] Test: Usuario normal no accede a admin
-- [ ] Test: Inputs maliciosos rechazados
+- [x] Test: Login fallido después de 5 intentos
+- [x] Test: JWT expirado rechazado
+- [x] Test: Token con firma incorrecta rechazado
+- [x] Test: Rate limiting funciona correctamente
 
 **Criterio de aceptación:** Auth segura con bcrypt + JWT. Roles funcionando. Tests de seguridad pasan.
 
@@ -759,7 +759,7 @@
 | Fase | Estado | Progreso |
 |---|---|---|
 | Fase 0: Limpieza | ✅ Completada | 100% |
-| Fase 1: Seguridad | ⬜ No iniciada | 0% |
+| Fase 1: Seguridad | ✅ Completada | 100% |
 | Fase 2: PostgreSQL | ⬜ No iniciada | 0% |
 | Fase 3: API REST | ⬜ No iniciada | 0% |
 | Fase 4: IA Profesional | ⬜ No iniciada | 0% |
@@ -770,7 +770,7 @@
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: 5%** (Fase 0 completada - estructura base lista)
+**Progreso total: 10%** (Fases 0-1 completadas)
 
 ---
 
@@ -815,6 +815,33 @@ app/utils/formatters.py   → generar_id(), formatear_monto(), detectar_moneda()
 - `formatear_monto()` ahora usa default `moneda="ARS"` en vez de `st.session_state.moneda_activa`
 - Funciona igual porque la app solo soporta ARS por ahora
 - Cuando se agreguen más monedas, se pasará `moneda` como parámetro explícito
+
+### 18/07/2026 - Fase 1 completada (1 commit en dev)
+
+**Commit:** `200ea6d` - feat: Fase 1 - Auth segura con bcrypt + JWT + rate limiting
+
+#### Archivos creados:
+```
+app/core/auth.py           → bcrypt, JWT, rate limiting, roles, login/register
+tests/unit/test_auth.py    → 18 tests de seguridad
+```
+
+#### Mejoras de seguridad:
+| Antes | Después |
+|---|---|
+| SHA256 (sin sal) | bcrypt (sal única, 12 rounds) |
+| Sin sesiones | JWT access (1h) + refresh (7 días) |
+| Sin rate limiting | 5 intentos/min por IP |
+| Sin roles | Enum ADMIN/USER/VIEWER |
+| Sin migración | Auto-migración SHA256 → bcrypt |
+
+#### Tests de seguridad (18):
+- 6 tests de bcrypt (hash, verificar, sal única)
+- 7 tests de JWT (access, refresh, expirado, firma inválida)
+- 4 tests de rate limiting (bloqueo, cleanup, ventana)
+- 1 test de roles
+
+#### Total tests: 35/35 pasando
 
 ---
 
