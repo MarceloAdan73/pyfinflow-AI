@@ -235,7 +235,7 @@ class UserRepository(BaseRepository):
 
     def get_by_username(self, username: str) -> Optional[dict]:
         user = self.db.query(User).filter(User.username == username).first()
-        return self._to_dict(user) if user else None
+        return self._to_dict_full(user) if user else None
 
     def get_all(self, filters: dict = None) -> list[dict]:
         return [self._to_dict(u) for u in self.db.query(User).all()]
@@ -264,3 +264,8 @@ class UserRepository(BaseRepository):
             "role": user.role,
             "created_at": user.created_at.isoformat() if user.created_at else None,
         }
+
+    def _to_dict_full(self, user: User) -> dict:
+        d = self._to_dict(user)
+        d["password_hash"] = user.password_hash
+        return d
