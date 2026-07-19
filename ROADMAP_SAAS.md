@@ -41,7 +41,9 @@
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
 | **API** | 17 endpoints REST: /auth, /transactions, /budgets, /goals, /health |
 | **Tests** | 75 unitarios (pytest) - todos pasan |
-| **CI/CD** | GitHub Actions configurado |
+| **CI/CD** | GitHub Actions (Python 3.12, PostgreSQL service, ruff, pytest-cov) |
+| **Docker** | Dockerfile multi-stage + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
+| **Monitoring** | structlog + request logging middleware + health check (/health, /health/detailed) |
 | **Deploy actual** | Streamlit Cloud |
 | **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
@@ -377,12 +379,59 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 
 ---
 
-## FASE 4: INTELIGENCIA ARTIFICIAL PROFESIONAL
+## FASE 4: DEPLOY Y DEVOPS
+**Objetivo:** Deploy automatizado, escalable, y monitoreado.
+**Dependencias:** Fase 2 completada (puede ir en paralelo con 3-6). Docker necesita Fase 6 para el frontend completo.
+**Tiempo estimado:** 3-4 días
+
+### 4.1 Docker completo
+- [x] Crear `Dockerfile` multi-stage (builder + runtime, user no-root, healthcheck)
+- [x] Crear `docker-compose.yml` completo (app, PostgreSQL, Redis, ChromaDB)
+- [x] Crear `.dockerignore`
+- [ ] Probar `docker-compose up` localmente
+
+### 4.2 CI/CD mejorado
+- [x] Actualizar `.github/workflows/ci.yml` (Python 3.12, PostgreSQL service, ruff, pytest-cov, codecov)
+- [ ] Agregar badge de cobertura de código
+- [ ] Configurar branch protection en `main`
+
+### 4.3 Monitoreo
+- [x] Agregar health check endpoint: `GET /health` (mejorado con environment)
+- [x] Agregar health check detallado: `GET /health/detailed` (testa DB + Redis)
+- [x] Implementar logging estructurado con `structlog`
+- [x] Agregar request logging middleware (method, path, status, duration)
+- [x] Agregar lifespan events (startup/shutdown logging)
+- [ ] Agregar métricas básicas:
+  - [ ] Requests por minuto
+  - [ ] Latencia promedio de IA
+  - [ ] Errores por tipo
+  - [ ] Usuarios activos
+- [ ] Configurar alertas básicas (email en errores críticos)
+
+### 4.4 Redis
+- [ ] Instalar Redis local (ya pendiente en tu setup)
+- [ ] Implementar cache de:
+  - [ ] Sesiones de usuario
+  - [ ] Queries frecuentes (resúmenes)
+  - [ ] Rate limiting
+- [ ] Configurar TTL por tipo de dato
+
+### 4.5 Backup
+- [ ] Script de backup automático de PostgreSQL
+- [ ] Backup de ChromaDB
+- [ ] Almacenamiento en S3 o similar
+- [ ] Restore manual documentado
+
+**Criterio de aceptación:** Docker compose funciona. CI/CD pasa. Logging y monitoreo básico activo.
+
+---
+
+## FASE 5: INTELIGENCIA ARTIFICIAL PROFESIONAL
 **Objetivo:** Transformar el chatbot de reglas en un sistema IA real con RAG.
 **Dependencias:** Fase 3 completada
 **Tiempo estimado:** 5-7 días
 
-### 4.1 ChromaDB para embeddings
+### 5.1 ChromaDB para embeddings
 - [ ] Instalar `chromadb`
 - [ ] Crear `app/ai/vector_store.py`
 - [ ] Implementar indexación de transacciones como embeddings
@@ -390,7 +439,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [ ] Crear función `indexar_transacciones(user_id)`
 - [ ] Crear función `buscar_contexto(user_id, query, top_k=5)`
 
-### 4.2 RAG (Retrieval-Augmented Generation)
+### 5.2 RAG (Retrieval-Augmented Generation)
 - [ ] Crear `app/ai/rag_engine.py`
 - [ ] Flujo:
   ```
@@ -403,7 +452,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [ ] Implementar `consultar_ia_rag(user_id, pregunta)`
 - [ ] Mantener fallback a reglas si ChromaDB/LM falla
 
-### 4.3 Multi-provider IA
+### 5.3 Multi-provider IA
 - [ ] Crear `app/ai/providers/base_provider.py` (interfaz)
 - [ ] Implementar providers:
   - [ ] `OllamaProvider` (local, `qwen2.5-coder:7b`)
@@ -413,7 +462,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [ ] Configurar prioridad: Ollama → HuggingFace → Gemini
 - [ ] Agregar métricas de latencia por provider
 
-### 4.4 Memoria de conversación
+### 5.4 Memoria de conversación
 - [ ] Crear tabla `chat_history` en PostgreSQL:
   ```sql
   CREATE TABLE chat_history (
@@ -434,7 +483,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [ ] Limitar ventana de contexto (últimos 20 mensajes)
 - [ ] Agregar botón "Limpiar historial de chat"
 
-### 4.5 Análisis predictivo
+### 5.5 Análisis predictivo
 - [ ] Crear `app/ai/analytics.py`
 - [ ] Implementar análisis de patrones:
   - [ ] Tendencia de gasto por categoría (sube/baja)
@@ -449,14 +498,14 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
   " detectamos un gasto inusual de $50,000 en Transporte el martes"
   ```
 
-### 4.6 Voice input (opcional)
+### 5.6 Voice input (opcional)
 - [ ] Instalar `whisper` (openai-whisper)
 - [ ] Implementar `app/ai/voice.py`
 - [ ] Agregar botón de micrófono en chat UI
 - [ ] Transcribir audio → texto → consultar IA
 - [ ] Configurar modelo `tiny` o `base` para CPU
 
-### 4.7 Tests de IA
+### 5.7 Tests de IA
 - [ ] Test: RAG retorna contexto relevante
 - [ ] Test: Fallback a HuggingFace si Ollama falla
 - [ ] Test: Fallback a reglas si todo falla
@@ -468,9 +517,9 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 
 ---
 
-## FASE 5: FRONTEND PROFESIONAL (Next.js)
+## FASE 6: FRONTEND PROFESIONAL (Next.js)
 **Objetivo:** UI de nivel producción tipo fintech con React + TypeScript.
-**Dependencias:** Fase 3 completada (paralela a Fase 4)
+**Dependencias:** Fase 3 completada (paralela a Fase 5)
 **Tiempo estimado:** 8-10 días
 
 ### Decisión técnica: Next.js sobre Streamlit
@@ -570,7 +619,7 @@ frontend/
 └── tsconfig.json
 ```
 
-### 5.1 Setup y Auth (2-3 días)
+### 6.1 Setup y Auth (2-3 días)
 - [ ] `npx create-next-app@latest frontend` con TypeScript + Tailwind
 - [ ] Instalar Shadcn/UI, configurar tema oscuro con colores existentes
 - [ ] Crear `lib/api.ts` — fetch wrapper con manejo de JWT + refresh
@@ -581,7 +630,7 @@ frontend/
 - [ ] Auth context + ProtectedRoute (redirige a /login si no hay token)
 - [ ] Layout raíz con sidebar colapsable
 
-### 5.2 Dashboard (2-3 días)
+### 6.2 Dashboard (2-3 días)
 - [ ] Dashboard principal con métricas (income, expenses, balance, count)
 - [ ] Gráfico de torta — gastos por categoría (Recharts PieChart)
 - [ ] Gráfico de barras — tendencia mensual (Recharts BarChart)
@@ -591,7 +640,7 @@ frontend/
 - [ ] Indicadores visuales de tendencia (↑↓→)
 - [ ] Loading skeletons (Shadcn Skeleton)
 
-### 5.3 Transacciones (2 días)
+### 6.3 Transacciones (2 días)
 - [ ] Tabla profesional con TanStack Table (sorting, paginación, columnas custom)
 - [ ] Filtros avanzados: tipo, categoría, fecha rango, monto
 - [ ] Modal/Sheet para crear transacción (Shadcn Sheet)
@@ -600,7 +649,7 @@ frontend/
 - [ ] Empty state ilustrado cuando no hay transacciones
 - [ ] Búsqueda por texto en descripción
 
-### 5.4 Presupuestos y Metas (1-2 días)
+### 6.4 Presupuestos y Metas (1-2 días)
 - [ ] Cards de presupuesto con progress bars animadas (Framer Motion)
 - [ ] Alertas visuales: 80% warning (naranja), 100% excedido (rojo)
 - [ ] Formulario de creación/edición (Shadcn Dialog)
@@ -608,7 +657,7 @@ frontend/
 - [ ] Meta de ahorro con porcentaje completado
 - [ ] Empty states para sin presupuestos/sin metas
 
-### 5.5 Settings y pulido (1 día)
+### 6.5 Settings y pulido (1 día)
 - [ ] Perfil de usuario (username, rol)
 - [ ] Cambio de contraseña con validación
 - [ ] Toggle de tema oscuro/claro (persiste en localStorage)
@@ -621,144 +670,13 @@ frontend/
 
 ---
 
-## FASE 6: DEPLOY Y DEVOPS
-**Objetivo:** Deploy automatizado, escalable, y monitoreado.
-**Dependencias:** Fase 2 completada (puede ir en paralelo con 3-5). Docker necesita Fase 5 para el frontend completo.
-**Tiempo estimado:** 3-4 días
-
-### 6.1 Docker completo
-- [ ] Crear `Dockerfile` multi-stage:
-  ```dockerfile
-  # Build stage
-  FROM python:3.12-slim AS builder
-  WORKDIR /app
-  COPY requirements.txt .
-  RUN pip install --no-cache-dir -r requirements.txt
-
-  # Runtime stage
-  FROM python:3.12-slim
-  WORKDIR /app
-  COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-  COPY . .
-  EXPOSE 8501
-  CMD ["streamlit", "run", "app/main.py"]
-  ```
-- [ ] Crear `docker-compose.yml` completo:
-  ```yaml
-  services:
-    app:
-      build: .
-      ports: ["8501:8501"]
-      depends_on: [db, redis]
-      environment:
-        - DATABASE_URL=postgresql://...
-        - REDIS_URL=redis://redis:6379
-
-    db:
-      image: postgres:16-alpine
-      volumes: [pgdata:/var/lib/postgresql/data]
-      environment:
-        POSTGRES_DB: pystreamflow
-        POSTGRES_USER: pystreamflow
-        POSTGRES_PASSWORD: ${DB_PASSWORD}
-
-    redis:
-      image: redis:7-alpine
-      volumes: [redisdata:/data]
-
-    chromadb:
-      image: chromadb/chroma:latest
-      ports: ["8000:8000"]
-      volumes: [chromadata:/chroma/chroma]
-
-  volumes:
-    pgdata:
-    redisdata:
-    chromadata:
-  ```
-- [ ] Crear `.dockerignore`
-- [ ] Probar `docker-compose up` localmente
-
-### 6.2 CI/CD mejorado
-- [ ] Actualizar `.github/workflows/ci.yml`:
-  ```yaml
-  name: CI/CD
-  on:
-    push:
-      branches: [main, dev]
-    pull_request:
-      branches: [main]
-
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      services:
-        postgres:
-          image: postgres:16
-          env:
-            POSTGRES_DB: test_db
-            POSTGRES_USER: test
-            POSTGRES_PASSWORD: test
-          ports: [5432:5432]
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: "3.12"
-        - run: pip install -r requirements.txt -r requirements-dev.txt
-        - run: ruff check .
-        - run: black --check .
-        - run: mypy app/
-        - run: pytest tests/ -v --cov=app --cov-report=xml
-        - uses: codecov/codecov-action@v4
-
-    deploy:
-      needs: test
-      if: github.ref == 'refs/heads/main'
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Deploy to Streamlit Cloud
-          # Configurar secrets en GitHub
-  ```
-- [ ] Agregar badge de cobertura de código
-- [ ] Configurar branch protection en `main`
-
-### 6.3 Monitoreo
-- [ ] Agregar health check endpoint: `GET /health`
-- [ ] Implementar logging estructurado con `structlog`
-- [ ] Agregar métricas básicas:
-  - [ ] Requests por minuto
-  - [ ] Latencia promedio de IA
-  - [ ] Errores por tipo
-  - [ ] Usuarios activos
-- [ ] Configurar alertas básicas (email en errores críticos)
-
-### 6.4 Redis
-- [ ] Instalar Redis local (ya pendiente en tu setup)
-- [ ] Implementar cache de:
-  - [ ] Sesiones de usuario
-  - [ ] Queries frecuentes (resúmenes)
-  - [ ] Rate limiting
-- [ ] Configurar TTL por tipo de dato
-
-### 6.5 Backup
-- [ ] Script de backup automático de PostgreSQL
-- [ ] Backup de ChromaDB
-- [ ] Almacenamiento en S3 o similar
-- [ ] Restore manual documentado
-
-**Criterio de aceptación:** Docker compose funciona. CI/CD pasa. Logging y monitoreo básico activo.
-
----
-
 ## FASE 7: MULTI-IDIOMA Y LOCALIZACIÓN
 **Objetivo:** Soporte internacionalización.
-**Dependencias:** Fase 5 completada
+**Dependencias:** Fase 6 completada
 **Tiempo estimado:** 2-3 días
 
 ### 7.1 i18n
-- [ ] Instalar `streamlit-i18n` o usar `gettext`
+- [ ] Instalar `next-intl` o `next-i18next` para Next.js
 - [ ] Crear archivos de traducción:
   ```
   locales/
@@ -768,7 +686,7 @@ frontend/
   ```
 - [ ] Extraer todos los strings hardcodeados
 - [ ] Reemplazar por funciones de traducción
-- [ ] Selector de idioma en sidebar
+- [ ] Selector de idioma en navbar/header
 
 ### 7.2 Multi-moneda
 - [ ] Soportar USD, EUR, BRL además de ARS
@@ -782,7 +700,7 @@ frontend/
 
 ## FASE 8: FEATURES AVANZADAS
 **Objetivo:** Funcionalidades que diferencian de la competencia.
-**Dependencias:** Fase 4 completada
+**Dependencias:** Fase 5 completada
 **Tiempo estimado:** 5-7 días
 
 ### 8.1 Notificaciones
@@ -905,15 +823,15 @@ frontend/
 | Fase 1: Seguridad | ✅ Completada | 100% |
 | Fase 2: PostgreSQL | ✅ Completada | 100% |
 | Fase 3: API REST | ✅ Completada | 100% |
-| Fase 4: IA Profesional | ⬜ No iniciada | 0% |
-| Fase 5: Frontend | ⬜ No iniciada | 0% |
-| Fase 6: DevOps | ⬜ No iniciada | 0% |
+| Fase 4: DevOps | 🔄 En progreso | 70% |
+| Fase 5: IA Profesional | ⬜ No iniciada | 0% |
+| Fase 6: Frontend | ⬜ No iniciada | 0% |
 | Fase 7: i18n | ⬜ No iniciada | 0% |
 | Fase 8: Features | ⬜ No iniciada | 0% |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: 25%** (Fases 0-3 completadas)
+**Progreso total: 32%** (Fases 0-3 completadas + Fase 4 al 70%)
 
 ---
 
@@ -1189,3 +1107,60 @@ git push origin main
 - Estado general del proyecto actualizado
 - Sección de "Decisiones técnicas clave" agregada con contexto de cada decisión
 - Fase 6 dependencies actualizadas
+
+### 19/07/2026 - Reordenamiento de fases (simplest → complex)
+
+**Decisión:** Reordenar las fases pendientes de menor a mayor complejidad, respetando dependencias.
+
+**Nuevo orden:**
+
+| Orden | Fase | Tiempo | Complejidad | Antes era |
+|---|---|---|---|---|
+| 4 | DevOps | 3-4 días | Media | Fase 6 |
+| 5 | IA Profesional | 5-7 días | Alta | Fase 4 |
+| 6 | Frontend Next.js | 8-10 días | Máxima | Fase 5 |
+| 7 | i18n | 2-3 días | Baja | Fase 7 (sin cambio) |
+| 8 | Features | 5-7 días | Alta | Fase 8 (sin cambio) |
+| 9 | Testing | 3-4 días | Media | Fase 9 (sin cambio) |
+| 10 | Lanzamiento | 2-3 días | Baja | Fase 10 (sin cambio) |
+
+**Razones:**
+- DevOps primero: Docker + CI/CD habilita testing en entornos limpios
+- IA antes que Frontend: es el diferenciador core del producto, se puede probar con Streamlit mientras se construye Next.js
+- Frontend después: consume la API que ya incluye IA
+- i18n después de Frontend: necesita la UI en place
+- Features después de IA: construyen sobre IA funcional
+- Testing y Launch al final: gates de calidad
+
+### 19/07/2026 - Fase 4 (DevOps) - Avance parcial
+
+**Archivos creados:**
+```
+Dockerfile               → Multi-stage build (builder + runtime), user no-root, healthcheck
+docker-compose.yml       → 4 servicios: app, PostgreSQL 16, Redis 7, ChromaDB
+.dockerignore            → Excluye .git, __pycache__, .env, docs, tests
+```
+
+**Archivos modificados:**
+```
+requirements.txt         → Agregados: sqlalchemy, alembic, psycopg2-binary, bcrypt, PyJWT,
+                           fastapi, uvicorn, pydantic, httpx, structlog, pytest-cov, ruff, mypy
+app/core/config.py       → Clase Settings con DATABASE_URL, REDIS_URL, JWT_SECRET, ENVIRONMENT
+app/core/database.py     → Import actualizado para usar settings object
+app/repositories/factory.py → Import DATABASE_URL removido (no se usaba)
+app/api/main.py          → structlog logging, request middleware, lifespan events,
+                           health check mejorado (/health + /health/detailed)
+.github/workflows/ci.yml → Python 3.12, PostgreSQL service, ruff lint, pytest-cov, codecov
+```
+
+**Dependencias instaladas:**
+- `structlog` → logging estructurado
+- `redis` → cliente Redis para health check y cache futuro
+
+**Tests:** 75/75 pasando (58 unit + 17 originales)
+
+**Pendiente de Fase 4:**
+- Probar `docker-compose up` localmente
+- Configurar Redis local
+- Agregar métricas de requests/latencia
+- Backup automático de PostgreSQL

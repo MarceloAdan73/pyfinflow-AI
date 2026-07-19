@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 
-from app.core.config import DATABASE_URL
 from app.repositories.base_repo import BaseRepository
 from app.repositories.postgres_repo import (
     TransactionRepository as PgTransactionRepo,

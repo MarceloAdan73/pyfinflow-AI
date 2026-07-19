@@ -13,12 +13,18 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.coverage
+htmlcov/
+coverage.xml
 
 # Base de datos local
 *.db
+*.sqlite3
 
 # Token de HuggingFace
 .env
+.env.local
+.env.*.local
 
 # Alembic (contiene DB URL en texto plano)
 alembic.ini
@@ -35,6 +41,13 @@ alembic.ini
 *.bak
 *.swp
 .DS_Store
+Thumbs.db
 
-# ChromaDB (cuando se implemente)
+# ChromaDB
 chroma_data/
+
+# Docker volumes
+logs/
+
+# MyPy
+.mypy_cache/
