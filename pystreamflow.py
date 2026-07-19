@@ -2,106 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
-from dataclasses import dataclass, asdict
-import re
 import os
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 import auth
 import database
 
-# ============================
-# CONFIGURACIÓN
-# ============================
-
-MONEDAS = {
-    "ARS": {"simbolo": "$", "flag": "🇦🇷", "nombre": "Pesos Argentinos"},
-}
-
-COLORES = {
-    "ingreso": "#10B981",
-    "gasto": "#EF4444",
-    "balance_pos": "#3B82F6",
-    "balance_neg": "#F59E0B",
-    "primario": "#6366F1",
-    "fondo": "#0f172a",
-    "card": "rgba(30, 41, 59, 0.8)",
-    "texto": "#f8fafc",
-    "texto_sec": "#94a3b8",
-}
-
-
-def icon_fa(tipo):
-    """Retorna emoji basado en el tipo"""
-    iconos = {
-        "ingreso": "🟢",
-        "gasto": "🔴",
-        "robot": "🤖",
-        "bienvenida": "✨",
-        "mensaje": "💬",
-        "enviar": "📤",
-        "check": "✅",
-        "warning": "⚠️",
-        "error": "❌",
-        "ingresos_titulo": "🟢",
-        "gastos_titulo": "🔴",
-        "presupuesto_ok": "✅",
-        "presupuesto_warn": "⚠️",
-        "presupuesto_alert": "🚨",
-        "online": "🟢",
-        "offline": "🔴",
-    }
-    return iconos.get(tipo, "")
-
-
-def icono_tipo_transaccion(tipo):
-    """Retorna emoji para tipo de transacción (ingreso/gasto)"""
-    return "🟢" if tipo == "Ingreso" else "🔴"
-
-
-CATEGORIAS = {
-    "Ingreso": [
-        "Salario",
-        "Freelance",
-        "Saldo inicial",
-        "Inversiones",
-        "Regalos",
-        "Otros",
-    ],
-    "Gasto": [
-        "Comida",
-        "Vivienda",
-        "Transporte",
-        "Salud",
-        "Ocio",
-        "Servicios",
-        "Educación",
-        "Otros",
-    ],
-}
-
-# Placeholders dinámicos para descripción según categoría
-PLACEHOLDERS_DESCRIPCION = {
-    # Ingresos
-    "Salario": "Ej: Sueldo mes de enero",
-    "Freelance": "Ej: Diseño web proyecto X",
-    "Saldo inicial": "Ej: Ahorros iniciales 2026",
-    "Inversiones": "Ej: Rendimiento FCI",
-    "Regalos": "Ej: Dinero de cumpleaños",
-    "Otros": "Ej: Ingreso extra",
-    # Gastos
-    "Comida": "Ej: Supermercado, restaurantes",
-    "Vivienda": "Ej: Alquiler, expensas, gas",
-    "Transporte": "Ej: Uber, colectivo, nafta",
-    "Salud": "Ej: Farmacia, médico, obra social",
-    "Ocio": "Ej: Cine, salidas, hobbies",
-    "Servicios": "Ej: Internet, luz, agua",
-    "Educación": "Ej: Curso, libros, matrícula",
-    "Otros": "Ej: Varios gastos",
-}
-
-# Paginación historial
-ITEMS_POR_PAGINA = 20
+from app.core.constants import MONEDAS, COLORES, CATEGORIAS, PLACEHOLDERS_DESCRIPCION, ITEMS_POR_PAGINA
+from app.core.models import Transaccion, icon_fa, icono_tipo_transaccion
+from app.utils.formatters import generar_id, formatear_monto, detectar_moneda
 
 # ============================
 # FUNCIONES DE UTILIDADES
@@ -289,25 +198,6 @@ def render_shortcuts_help():
 
 
 # ============================
-# MODELO
-# ============================
-
-
-@dataclass
-class Transaccion:
-    id: str
-    tipo: str
-    monto: float
-    categoria: str
-    descripcion: str
-    fecha: str
-    moneda: str
-
-    def to_dict(self):
-        return asdict(self)
-
-
-# ============================
 # INICIALIZACIÓN
 # ============================
 
@@ -360,68 +250,6 @@ def init_state():
 # ============================
 # FUNCIONES UTILITARIAS
 # ============================
-
-
-def generar_id():
-    """Genera ID único usando timestamp completo + microsegundos + random"""
-    from random import randint
-
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    random_part = randint(100, 999)
-    return f"txn_{timestamp}_{random_part}"
-
-
-def formatear_monto(valor, moneda=None):
-    if moneda is None:
-        moneda = st.session_state.moneda_activa
-    info = MONEDAS[moneda]
-    if valor == int(valor):
-        return f"{info['simbolo']} {int(valor):,}"
-    return f"{info['simbolo']} {valor:,.2f}"
-
-
-def _parsear_numero(texto_numero):
-    """Parsea un string de número manejando formatos americano y europeo"""
-    texto = texto_numero.strip()
-
-    if "," in texto and "." in texto:
-        if texto.rfind(",") > texto.rfind("."):
-            texto = texto.replace(".", "").replace(",", ".")
-        else:
-            texto = texto.replace(",", "")
-    elif "," in texto:
-        partes = texto.split(",")
-        if len(partes) == 2:
-            parte_decimal = partes[1]
-            parte_entera = partes[0]
-
-            if len(parte_decimal) == 3 and parte_entera.replace(".", "").isdigit():
-                texto = texto.replace(",", "")
-            elif len(parte_decimal) <= 2:
-                texto = texto.replace(",", ".")
-            else:
-                texto = texto.replace(",", "")
-        elif texto.count(",") > 1:
-            texto = texto.replace(",", "")
-
-    try:
-        return float(texto)
-    except ValueError:
-        return None
-
-
-def detectar_moneda(texto):
-    """Detecta el monto de una transacción (siempre devuelve ARS)"""
-    if not texto:
-        return None, None
-
-    nums = re.findall(r"[\d.,]+", texto)
-    if nums:
-        numero = _parsear_numero(nums[0])
-        if numero is not None:
-            return numero, "ARS"
-
-    return None, None
 
 
 def get_df(moneda="ARS"):
@@ -513,7 +341,7 @@ def obtener_contexto_financiero():
 
 
 def css():
-    with open("style.css", "r") as f:
+    with open("app/ui/styles/main.css", "r") as f:
         css_content = f.read()
     st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
 

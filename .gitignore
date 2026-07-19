@@ -2,6 +2,7 @@
 venv/
 env/
 ENV/
+.venv/
 
 # Python
 __pycache__/
@@ -9,6 +10,9 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+*.egg-info/
+dist/
+build/
 
 # Base de datos local
 *.db
@@ -28,3 +32,6 @@ __pycache__/
 *.bak
 *.swp
 .DS_Store
+
+# ChromaDB (cuando se implemente)
+chroma_data/
