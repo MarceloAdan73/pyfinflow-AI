@@ -32,14 +32,15 @@
 
 | Aspecto | Estado actual |
 |---|---|
-| **App** | Streamlit monolítico (~2800 líneas) |
+| **App** | Streamlit monolito → Modular (parcial). `pystreamflow.py` reducido, core/services/utils extraídos |
 | **DB** | SQLite (local) + Supabase (cloud) |
 | **IA** | HuggingFace Zephyr-7b + fallback reglas |
 | **Auth** | SHA256 sin sal (básico) |
-| **Tests** | 12 unitarios (pytest) |
+| **Tests** | 17 unitarios (pytest) - todos pasan |
 | **CI/CD** | GitHub Actions configurado |
 | **Deploy** | Streamlit Cloud |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
+| **Último commit dev** | `464b1d9` - docs: actualizar roadmap - Fase 0 completada |
 
 ---
 
@@ -775,13 +776,45 @@
 
 ## NOTAS Y APRENDIZAJES
 
-### 18/07/2026 - Fase 0 completada
-> - Estructura `app/core`, `app/services`, `app/repositories`, `app/ui`, `app/utils` creada
-> - Constantes, modelos y formatters extraídos a módulos separados
-> - CSS movido a `app/ui/styles/main.css`
-> - 17/17 tests pasando después del refactor
-> - Git: commiteado en `dev`, push a origin
-> - El `formatear_monto` ahora usa default `moneda="ARS"` en vez de `st.session_state.moneda_activa` (funciona igual porque solo hay ARS)
+### 18/07/2026 - Fase 0 completada (2 commits en dev)
+
+**Commit 1:** `714c6a8` - refactor: Fase 0 - Extraer constants, models, formatters y CSS a módulos separados
+
+**Commit 2:** `464b1d9` - docs: actualizar roadmap - Fase 0 completada
+
+#### Archivos creados:
+```
+app/__init__.py
+app/core/__init__.py
+app/core/constants.py     → MONEDAS, COLORES, CATEGORIAS, PLACEHOLDERS_DESCRIPCION, ITEMS_POR_PAGINA
+app/core/models.py        → Transaccion (dataclass), icon_fa(), icono_tipo_transaccion()
+app/services/__init__.py
+app/repositories/__init__.py
+app/ui/__init__.py
+app/ui/components/__init__.py
+app/ui/pages/__init__.py
+app/ui/styles/__init__.py
+app/ui/styles/main.css    → Copia de style.css original
+app/utils/__init__.py
+app/utils/formatters.py   → generar_id(), formatear_monto(), detectar_moneda(), _parsear_numero()
+```
+
+#### Cambios en pystreamflow.py:
+- Imports actualizados para usar los nuevos módulos
+- Funciones duplicadas eliminadas (~150 líneas removidas)
+- Ruta de CSS actualizada: `style.css` → `app/ui/styles/main.css`
+
+#### Archivos modificados:
+- `.gitignore` → Agregados `.venv/`, `dist/`, `build/`, `*.egg-info/`, `chroma_data/`
+
+#### Tests:
+- 17/17 tests pasando después del refactor
+- No se rompió nada - la app funciona igual
+
+#### Decisión técnica:
+- `formatear_monto()` ahora usa default `moneda="ARS"` en vez de `st.session_state.moneda_activa`
+- Funciona igual porque la app solo soporta ARS por ahora
+- Cuando se agreguen más monedas, se pasará `moneda` como parámetro explícito
 
 ---
 
