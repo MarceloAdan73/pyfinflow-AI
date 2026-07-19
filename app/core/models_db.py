@@ -1,0 +1,106 @@
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import (
+    Column, String, Float, Text, DateTime, ForeignKey, UniqueConstraint, Index
+)
+from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), nullable=False, default="USER")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+    budgets = relationship("Budget", back_populates="user", cascade="all, delete-orphan")
+    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
+    custom_categories = relationship("CustomCategory", back_populates="user", cascade="all, delete-orphan")
+    config = relationship("UserConfig", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    tipo = Column(String(20), nullable=False)
+    monto = Column(Float, nullable=False)
+    categoria = Column(String(50), nullable=False)
+    descripcion = Column(Text, default="")
+    fecha = Column(String(10), nullable=False)
+    moneda = Column(String(10), nullable=False, default="ARS")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="transactions")
+
+    __table_args__ = (
+        Index("idx_transactions_user_fecha", "user_id", "fecha"),
+        Index("idx_transactions_user_tipo", "user_id", "tipo"),
+    )
+
+
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    categoria = Column(String(50), nullable=False)
+    limite = Column(Float, nullable=False)
+    mes = Column(String(7), nullable=False)  # YYYY-MM
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="budgets")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "categoria", "mes", name="uq_budget_user_cat_mes"),
+    )
+
+
+class Goal(Base):
+    __tablename__ = "goals"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    nombre = Column(String(100), nullable=False)
+    objetivo = Column(Float, nullable=False)
+    ahorrado = Column(Float, default=0.0)
+    fecha_limite = Column(String(10))
+    categoria = Column(String(50))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="goals")
+
+
+class CustomCategory(Base):
+    __tablename__ = "custom_categories"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    tipo = Column(String(20), nullable=False)
+    nombre = Column(String(50), nullable=False)
+
+    user = relationship("User", back_populates="custom_categories")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "tipo", "nombre", name="uq_custom_cat"),
+    )
+
+
+class UserConfig(Base):
+    __tablename__ = "user_configs"
+
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    moneda_activa = Column(String(10), default="ARS")
+    filtro_fecha_inicio = Column(String(10))
+    filtro_fecha_fin = Column(String(10))
+
+    user = relationship("User", back_populates="config")
