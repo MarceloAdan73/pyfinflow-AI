@@ -32,15 +32,70 @@
 
 | Aspecto | Estado actual |
 |---|---|
-| **App** | Streamlit monolito → Modular (parcial). `pystreamflow.py` reducido, core/services/utils extraídos |
-| **DB** | SQLite (local) + Supabase (cloud) |
-| **IA** | HuggingFace Zephyr-7b + fallback reglas |
-| **Auth** | bcrypt + JWT (access/refresh) + rate limiting + roles |
+| **App** | Streamlit monolito (~2972 líneas) + API REST FastAPI |
+| **Frontend actual** | Streamlit (MVP funcional, techo bajo para SaaS) |
+| **Frontend planeado** | Next.js 14 + React + TypeScript + Tailwind + Shadcn/UI |
+| **Backend** | FastAPI + SQLAlchemy + Repository Pattern + Alembic |
+| **DB** | PostgreSQL (producción) + SQLite en memoria (tests) |
+| **IA** | HuggingFace Zephyr-7b + fallback reglas (pendiente: RAG, ChromaDB) |
+| **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
+| **API** | 17 endpoints REST: /auth, /transactions, /budgets, /goals, /health |
 | **Tests** | 75 unitarios (pytest) - todos pasan |
 | **CI/CD** | GitHub Actions configurado |
-| **Deploy** | Streamlit Cloud |
+| **Deploy actual** | Streamlit Cloud |
+| **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | `3ab8a1d` - feat: Fase 3 - API REST completa con FastAPI |
+| **Último commit dev** | `e1257ab` - docs: documentar Fases 2 y 3 completadas en roadmap |
+
+### Decisiones técnicas clave (contexto)
+
+#### ¿Por qué API REST separada del Streamlit?
+El monolito Streamlit mezcla frontend y backend en el mismo proceso. Al crear una API REST con FastAPI, separamos las responsabilidades:
+- **Backend (FastAPI)**: lógica de negocio, auth, base de datos — independiente del frontend
+- **Frontend (Streamlit hoy, Next.js mañana)**: solo presenta datos y captura input
+- Esto permite cambiar el frontend sin tocar el backend, y viceversa
+
+#### ¿Por qué Repository Pattern?
+Antes, la lógica de acceso a datos estaba dispersa en `database.py` (SQLite) y Supabase. Al crear repositorios abstractos (`BaseRepository`) con implementaciones concretas (`TransactionRepository`, etc.):
+- Se puede cambiar de SQLite a PostgreSQL sin cambiar la lógica de negocio
+- Se facilita testing (SQLite en memoria para tests, PostgreSQL para producción)
+- Se sigue el principio de Dependency Inversion (dependencias apuntan hacia adentro)
+
+#### ¿Por qué Next.js y no mejorar Streamlit?
+Streamlit tiene limitaciones técnicas duras para una app SaaS profesional:
+- **Rerender completo**: cada click re-dibuja toda la página, no hay granularidad
+- **Sin routing real**: no hay URLs por página, no se pueden compartir links directos
+- **Sin control del DOM**: las "cards" son `st.metric` + HTML inyectado con `unsafe_allow_html`
+- **Estado frágil**: `st.session_state` se pierde entre recargas
+- **Sin type safety**: Python dinámico, errores solo en runtime
+- **Sin componentes custom**: todo se resuelve con markdown + CSS hack
+
+Next.js + React ofrece:
+- Control total del DOM y las animaciones
+- Routing real con layouts anidados y URLs compartibles
+- TypeScript para errores en compile time
+- Shadcn/UI: componentes profesionales tipo fintech (Linear, Vercel, Raycast)
+- Deploy gratis en Vercel con analytics y edge
+- La API REST ya existe y funciona para cualquier frontend
+
+#### ¿Por qué Shadcn/UI y no otra librería?
+Shadcn/UI no es una dependencia — copiás los componentes a tu proyecto. Ventajas:
+- Sin lock-in: si dejás de usarlo, el código sigue funcionando
+- Total customización con Tailwind CSS
+- Basado en Radix UI (accessibilidad real, no solo visual)
+- Los mismos componentes que usan fintechs profesionales
+
+#### Convivencia: Streamlit + Next.js
+El monolito Streamlit se mantiene como:
+- **MVP funcional** para desarrollo rápido y testing
+- **Backup** si algo falla en Next.js
+- **Reference implementation** de la lógica de negocio
+
+Ambos frontends hablan con la misma API FastAPI:
+- `http://localhost:8501` → Streamlit legacy
+- `http://localhost:3000` → Next.js nuevo
+
+Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero no se elimina.
 
 ---
 
@@ -413,60 +468,162 @@
 
 ---
 
-## FASE 5: FRONTEND PROFESIONAL
-**Objetivo:** UI de nivel producción con componentes reutilizables.
+## FASE 5: FRONTEND PROFESIONAL (Next.js)
+**Objetivo:** UI de nivel producción tipo fintech con React + TypeScript.
 **Dependencias:** Fase 3 completada (paralela a Fase 4)
-**Tiempo estimado:** 4-5 días
+**Tiempo estimado:** 8-10 días
 
-### 5.1 Componentes reutilizables
-- [ ] Crear `app/ui/components/` con:
-  - [ ] `metric_card.py` - Tarjeta de métrica reutilizable
-  - [ ] `data_table.py` - Tabla con sorting, filtros, paginación
-  - [ ] `chart_container.py` - Wrapper de Plotly con tema consistente
-  - [ ] `form_builder.py` - Builder de formularios con validación
-  - [ ] `modal.py` - Modales reutilizables
-  - [ ] `toast.py` - Notificaciones toast
-  - [ ] `loading.py` - Skeletons y spinners
+### Decisión técnica: Next.js sobre Streamlit
 
-### 5.2 Dashboard mejorado
-- [ ] Rediseñar dashboard con widgets configurables
-- [ ] Agregar "date range picker" profesional
-- [ ] Implementar drag-and-drop de widgets (con `streamlit-sortables`)
-- [ ] Agregar widget de "Resumen IA" con insights automáticos
-- [ ] Mostrar tendencias con indicadores visuales (↑↓→)
+**¿Por qué Next.js y no mejorar Streamlit?**
 
-### 5.3 Chat IA mejorado
-- [ ] Streaming de respuestas (token por token)
-- [ ] Markdown rendering en respuestas
-- [ ] Botones de "regenerar respuesta"
-- [ ] Indicador de "escribiendo..." animado
-- [ ] Historial de conversaciones guardadas
-- [ ] Selector de provider IA (Ollama/HF/Gemini)
+Streamlit tiene techo bajo para una app profesional:
+- Rerender completo en cada interacción (sin granularidad)
+- Sin routing real (no se pueden compartir URLs)
+- Sin control del DOM (todo es `st.metric` + HTML hackeado con `unsafe_allow_html`)
+- Estado frágil (`st.session_state` se pierde)
+- Sin componentes custom fáciles
+- Sin type safety
 
-### 5.4 Responsive design
-- [ ] Optimizar para móvil (CSS media queries)
-- [ ] Sidebar colapsable en móvil
-- [ ] Touch-friendly buttons
-- [ ] Layout adaptativo
+Next.js + React da control total:
+- Routing real con layouts anidados
+- Componentes ilimitados
+- Animaciones fluidas (Framer Motion)
+- TypeScript (errores en compile time)
+- Deploy gratis en Vercel
+- La API REST ya existe y funciona para ambos frontends
 
-### 5.5 Temas
-- [ ] Implementar toggle oscer/claro
-- [ ] Guardar preferencia en config
-- [ ] CSS variables para fácil customización
+**Convivencia:** Streamlit legacy se mantiene como MVP/backup en `localhost:8501`. Next.js es el frontend de producción en `localhost:3000`. Ambos hablan con la misma API FastAPI.
 
-### 5.6 Onboarding
-- [ ] Wizard de primeros pasos
-- [ ] Tooltips explicativos
-- [ ] Empty states ilustrados
-- [ ] Keyboard shortcuts help modal
+### Stack tecnológico
 
-**Criterio de aceptación:** UI profesional, responsive, con componentes reutilizables. Chat con streaming.
+| Capa | Tecnología | Por qué |
+|---|---|---|
+| Framework | Next.js 14 (App Router) | SSR, routing, lazy loading, layouts |
+| Language | TypeScript | Type safety, mejor DX |
+| Styling | Tailwind CSS | Utility-first, responsive, dark mode nativo |
+| Componentes | Shadcn/UI | Componentes copiados (no dependencia), profesionales |
+| Tablas | TanStack Table | Sorting, filtrado, paginación real |
+| Forms | React Hook Form + Zod | Validación tipo Pydantic en el frontend |
+| State | Zustand | Ligero, sin boilerplate |
+| HTTP | Fetch + SWR | Caché, revalidación, retry |
+| Charts | Recharts | Ligero, responsive, bien con Tailwind |
+| Animaciones | Framer Motion | Transiciones de página, micro-interacciones |
+| Auth | js-cookie + httpOnly | JWT management |
+| Deploy | Vercel | Gratis, edge, analytics |
+
+### Identidad visual (se mantiene del CSS actual)
+
+Los colores de `app/ui/styles/main.css` se traducen directamente a Tailwind:
+```
+background: #0f172a      → COLORES.fondo
+card: rgba(30,41,59,0.5) → COLORES.card
+primary: #6366F1         → COLORES.primario
+accent: #8B5CF6
+income: #10B981          → COLORES.ingreso
+expense: #EF4444         → COLORES.gasto
+text: #f8fafc            → COLORES.texto
+muted: #94a3b8           → COLORES.texto_sec
+```
+Glassmorphism, border-radius 16px, backdrop-blur — todo se replica con Tailwind.
+
+### Estructura del frontend
+
+```
+frontend/
+├── src/
+│   ├── app/                    # App Router (Next.js 14+)
+│   │   ├── (auth)/             # Grupo de rutas públicas
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   ├── (dashboard)/        # Grupo de rutas protegidas
+│   │   │   ├── layout.tsx      # Sidebar + nav
+│   │   │   ├── page.tsx        # Dashboard principal
+│   │   │   ├── transactions/page.tsx
+│   │   │   ├── budgets/page.tsx
+│   │   │   ├── goals/page.tsx
+│   │   │   └── settings/page.tsx
+│   │   ├── layout.tsx          # Root layout (theme, providers)
+│   │   └── page.tsx            # Landing/redirect
+│   ├── components/
+│   │   ├── ui/                 # Shadcn/UI primitives
+│   │   ├── dashboard/          # Widgets del dashboard
+│   │   ├── transactions/       # Tabla, form, cards
+│   │   ├── budgets/            # Progress bars, alerts
+│   │   ├── goals/              # Circular progress, cards
+│   │   └── layout/             # Sidebar, header, nav
+│   ├── lib/
+│   │   ├── api.ts              # Fetch wrapper con JWT
+│   │   ├── auth.ts             # Token management
+│   │   └── utils.ts            # formatear_monto, etc.
+│   ├── hooks/
+│   │   ├── use-transactions.ts
+│   │   ├── use-budgets.ts
+│   │   ├── use-goals.ts
+│   │   └── use-auth.ts
+│   └── types/
+│       └── index.ts            # TypeScript interfaces
+├── public/
+├── tailwind.config.ts
+├── next.config.ts
+├── package.json
+└── tsconfig.json
+```
+
+### 5.1 Setup y Auth (2-3 días)
+- [ ] `npx create-next-app@latest frontend` con TypeScript + Tailwind
+- [ ] Instalar Shadcn/UI, configurar tema oscuro con colores existentes
+- [ ] Crear `lib/api.ts` — fetch wrapper con manejo de JWT + refresh
+- [ ] Crear `lib/auth.ts` — store de auth con Zustand
+- [ ] Crear `types/index.ts` — interfaces TypeScript (Transaction, Budget, Goal, User)
+- [ ] Página de login con formulario (React Hook Form + Zod)
+- [ ] Página de register con validación
+- [ ] Auth context + ProtectedRoute (redirige a /login si no hay token)
+- [ ] Layout raíz con sidebar colapsable
+
+### 5.2 Dashboard (2-3 días)
+- [ ] Dashboard principal con métricas (income, expenses, balance, count)
+- [ ] Gráfico de torta — gastos por categoría (Recharts PieChart)
+- [ ] Gráfico de barras — tendencia mensual (Recharts BarChart)
+- [ ] Lista de transacciones recientes (últimas 5)
+- [ ] Alertas de presupuesto ( cards con progress bars )
+- [ ] Date range picker para filtrar período
+- [ ] Indicadores visuales de tendencia (↑↓→)
+- [ ] Loading skeletons (Shadcn Skeleton)
+
+### 5.3 Transacciones (2 días)
+- [ ] Tabla profesional con TanStack Table (sorting, paginación, columnas custom)
+- [ ] Filtros avanzados: tipo, categoría, fecha rango, monto
+- [ ] Modal/Sheet para crear transacción (Shadcn Sheet)
+- [ ] Modal de edición inline
+- [ ] Confirmación de eliminación (Shadcn AlertDialog)
+- [ ] Empty state ilustrado cuando no hay transacciones
+- [ ] Búsqueda por texto en descripción
+
+### 5.4 Presupuestos y Metas (1-2 días)
+- [ ] Cards de presupuesto con progress bars animadas (Framer Motion)
+- [ ] Alertas visuales: 80% warning (naranja), 100% excedido (rojo)
+- [ ] Formulario de creación/edición (Shadcn Dialog)
+- [ ] Goals con progreso circular animado
+- [ ] Meta de ahorro con porcentaje completado
+- [ ] Empty states para sin presupuestos/sin metas
+
+### 5.5 Settings y pulido (1 día)
+- [ ] Perfil de usuario (username, rol)
+- [ ] Cambio de contraseña con validación
+- [ ] Toggle de tema oscuro/claro (persiste en localStorage)
+- [ ] Responsive final: mobile, tablet, desktop
+- [ ] Transiciones de página con Framer Motion
+- [ ] Keyboard shortcuts (Ctrl+N = nueva transacción)
+- [ ] 404 page personalizada
+
+**Criterio de aceptación:** Frontend Next.js profesional, responsive, con componentes Shadcn/UI. Tema oscuro consistente. Todos los endpoints de la API consumidos. Deploy en Vercel.
 
 ---
 
 ## FASE 6: DEPLOY Y DEVOPS
 **Objetivo:** Deploy automatizado, escalable, y monitoreado.
-**Dependencias:** Fase 2 completada (puede ir en paralelo con 3-5)
+**Dependencias:** Fase 2 completada (puede ir en paralelo con 3-5). Docker necesita Fase 5 para el frontend completo.
 **Tiempo estimado:** 3-4 días
 
 ### 6.1 Docker completo
@@ -1015,3 +1172,20 @@ git push origin main
 
 *Documento creado el 18/07/2026 para PyStreamFlow-AI.*
 *Última actualización: 19/07/2026.*
+
+### 19/07/2026 - Decisión: Frontend Next.js (reemplaza plan Streamlit)
+
+**Contexto:** Después de completar las Fases 0-3 (backend profesional con API REST), se analizó el estado del frontend Streamlit actual (`pystreamflow.py`, 2972 líneas). Se concluyó que Streamlit tiene un techo técnico demasiado bajo para una app SaaS profesional tipo fintech.
+
+**Análisis comparativo:**
+- El CSS actual (`main.css`, 1540 líneas) es profesional (glassmorphism, responsive, animaciones) pero está limitado por el rendering model de Streamlit
+- Streamlit no tiene routing real, control del DOM, ni type safety
+- La API REST ya existe y está probada (75 tests), list para cualquier frontend
+
+**Decisión:** Adoptar Next.js 14 + React + TypeScript + Tailwind + Shadcn/UI como frontend de producción. Streamlit se mantiene como MVP/backup.
+
+**Archivos modificados en roadmap:**
+- Fase 5 reemplazada completamente (Streamlit → Next.js)
+- Estado general del proyecto actualizado
+- Sección de "Decisiones técnicas clave" agregada con contexto de cada decisión
+- Fase 6 dependencies actualizadas
