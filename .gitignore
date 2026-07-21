@@ -51,3 +51,8 @@ logs/
 
 # MyPy
 .mypy_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/

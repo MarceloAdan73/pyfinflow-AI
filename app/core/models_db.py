@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    Column, String, Float, Text, DateTime, ForeignKey, UniqueConstraint, Index
+    Column, String, Float, Integer, Text, DateTime, ForeignKey, UniqueConstraint, Index
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -25,6 +25,7 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     custom_categories = relationship("CustomCategory", back_populates="user", cascade="all, delete-orphan")
     config = relationship("UserConfig", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    chat_messages = relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
 
 
 class Transaction(Base):
@@ -104,3 +105,22 @@ class UserConfig(Base):
     filtro_fecha_fin = Column(String(10))
 
     user = relationship("User", back_populates="config")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    role = Column(String(20), nullable=False)
+    content = Column(Text, nullable=False)
+    context_used = Column(Text)
+    provider = Column(String(50))
+    tokens_used = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="chat_messages")
+
+    __table_args__ = (
+        Index("idx_chat_messages_user_created", "user_id", "created_at"),
+    )

@@ -6,6 +6,7 @@ from app.repositories.postgres_repo import (
     BudgetRepository as PgBudgetRepo,
     GoalRepository as PgGoalRepo,
     UserRepository as PgUserRepo,
+    ChatRepository as PgChatRepo,
 )
 
 
@@ -30,3 +31,7 @@ class RepositoryFactory:
     @property
     def users(self) -> PgUserRepo:
         return PgUserRepo(self.session)
+
+    @property
+    def chats(self) -> PgChatRepo:
+        return PgChatRepo(self.session)

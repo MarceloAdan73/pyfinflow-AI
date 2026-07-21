@@ -345,3 +345,23 @@ def test_list_goals(client):
     response = client.get("/goals", headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 2
+
+
+# ============================
+# METRICS
+# ============================
+
+def test_metrics_endpoint(client):
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    data = response.json()
+    assert "uptime_seconds" in data
+    assert "requests_per_minute" in data
+    assert "errors" in data
+
+
+def test_metrics_prometheus(client):
+    response = client.get("/metrics/prometheus")
+    assert response.status_code == 200
+    assert response.text.startswith("# HELP")
+    assert "pystreamflow_uptime_seconds" in response.text

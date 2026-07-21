@@ -2,11 +2,13 @@ import time
 from contextlib import asynccontextmanager
 
 import structlog
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import auth, transactions, budgets, goals
+from app.api.routers import auth, transactions, budgets, goals, ai
 from app.core.config import settings
+from app.core.metrics import metrics_collector
+from app.core.alerts import alert_critical_error
 
 logger = structlog.get_logger()
 
@@ -39,7 +41,23 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(
+            "http_request_error",
+            method=request.method,
+            path=request.url.path,
+            error=str(e),
+            duration_ms=round(duration * 1000, 2),
+        )
+        metrics_collector.record_request(
+            request.method, request.url.path, 500, round(duration * 1000, 2)
+        )
+        alert_critical_error("InternalServerError", str(e), request.url.path)
+        raise
+
     duration = time.time() - start_time
 
     logger.info(
@@ -49,6 +67,18 @@ async def log_requests(request: Request, call_next):
         status_code=response.status_code,
         duration_ms=round(duration * 1000, 2),
     )
+
+    metrics_collector.record_request(
+        request.method, request.url.path, response.status_code, round(duration * 1000, 2)
+    )
+
+    if response.status_code >= 500:
+        alert_critical_error(
+            f"HTTP {response.status_code}",
+            f"Server error on {request.method} {request.url.path}",
+            request.url.path,
+        )
+
     return response
 
 
@@ -56,6 +86,7 @@ app.include_router(auth.router)
 app.include_router(transactions.router)
 app.include_router(budgets.router)
 app.include_router(goals.router)
+app.include_router(ai.router)
 
 
 @app.get("/health")
@@ -82,10 +113,12 @@ def health_check_detailed():
         checks["database"] = f"error: {str(e)}"
 
     try:
-        import redis
-        r = redis.from_url(settings.REDIS_URL)
-        r.ping()
-        checks["redis"] = "ok"
+        from app.core.cache import get_redis
+        r = get_redis()
+        if r:
+            checks["redis"] = "ok"
+        else:
+            checks["redis"] = "unavailable"
     except Exception:
         checks["redis"] = "unavailable"
 
@@ -94,5 +127,19 @@ def health_check_detailed():
     return {
         "status": overall,
         "version": "2.0.0",
+        "environment": settings.ENVIRONMENT,
         "checks": checks,
     }
+
+
+@app.get("/metrics")
+def metrics():
+    return metrics_collector.get_metrics()
+
+
+@app.get("/metrics/prometheus")
+def metrics_prometheus():
+    return Response(
+        content=metrics_collector.get_prometheus_text(),
+        media_type="text/plain",
+    )

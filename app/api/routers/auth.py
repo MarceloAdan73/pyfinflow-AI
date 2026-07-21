@@ -12,6 +12,7 @@ from app.core.auth import (
     limpiar_intento,
     JWT_REFRESH_EXPIRY,
 )
+from app.core.metrics import metrics_collector
 from app.api.schemas.auth import (
     UserRegister,
     UserLogin,
@@ -138,6 +139,7 @@ def refresh(
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: dict = Depends(get_current_user)):
+    metrics_collector.record_user_activity(current_user["id"])
     return UserResponse(
         id=current_user["id"],
         username=current_user["username"],

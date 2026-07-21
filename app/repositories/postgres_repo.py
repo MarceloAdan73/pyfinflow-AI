@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.models_db import (
-    User, Transaction, Budget, Goal, CustomCategory, UserConfig
+    User, Transaction, Budget, Goal, CustomCategory, UserConfig, ChatMessage
 )
 from app.repositories.base_repo import BaseRepository
 
@@ -269,3 +269,80 @@ class UserRepository(BaseRepository):
         d = self._to_dict(user)
         d["password_hash"] = user.password_hash
         return d
+
+
+class ChatRepository(BaseRepository):
+    """Repository para mensajes de chat (historial de IA)"""
+
+    def create(self, data: dict) -> dict:
+        msg = ChatMessage(
+            id=data.get("id", f"chat_{uuid.uuid4().hex[:16]}"),
+            user_id=data["user_id"],
+            role=data["role"],
+            content=data["content"],
+            context_used=data.get("context_used"),
+            provider=data.get("provider"),
+            tokens_used=data.get("tokens_used", 0),
+        )
+        self.db.add(msg)
+        self.db.flush()
+        return self._to_dict(msg)
+
+    def get_by_id(self, id: str) -> Optional[dict]:
+        msg = self.db.query(ChatMessage).filter(ChatMessage.id == id).first()
+        return self._to_dict(msg) if msg else None
+
+    def get_all(self, filters: dict = None) -> list[dict]:
+        query = self.db.query(ChatMessage)
+        if filters:
+            if filters.get("user_id"):
+                query = query.filter(ChatMessage.user_id == filters["user_id"])
+        return [self._to_dict(m) for m in query.all()]
+
+    def get_history(self, user_id: str, limit: int = 20) -> list[dict]:
+        messages = (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.user_id == user_id)
+            .order_by(ChatMessage.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [self._to_dict(m) for m in reversed(messages)]
+
+    def clear_history(self, user_id: str) -> int:
+        count = (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.user_id == user_id)
+            .delete()
+        )
+        self.db.flush()
+        return count
+
+    def update(self, id: str, data: dict) -> Optional[dict]:
+        msg = self.db.query(ChatMessage).filter(ChatMessage.id == id).first()
+        if not msg:
+            return None
+        for key, value in data.items():
+            if hasattr(msg, key):
+                setattr(msg, key, value)
+        self.db.flush()
+        return self._to_dict(msg)
+
+    def delete(self, id: str) -> bool:
+        msg = self.db.query(ChatMessage).filter(ChatMessage.id == id).first()
+        if not msg:
+            return False
+        self.db.delete(msg)
+        return True
+
+    def _to_dict(self, msg: ChatMessage) -> dict:
+        return {
+            "id": msg.id,
+            "user_id": msg.user_id,
+            "role": msg.role,
+            "content": msg.content,
+            "context_used": msg.context_used,
+            "provider": msg.provider,
+            "tokens_used": msg.tokens_used,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        }

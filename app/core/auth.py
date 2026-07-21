@@ -113,12 +113,25 @@ def verificar_refresh_token(token: str) -> Optional[dict]:
 
 
 # ============================
-# RATE LIMITING (simple, en memoria)
+# RATE LIMITING (Redis + fallback en memoria)
 # ============================
 
 _login_attempts: dict[str, list[float]] = {}
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_WINDOW = 60  # segundos
+
+
+_REDIS_AVAILABLE = None
+
+def _use_redis_rate_limit():
+    global _REDIS_AVAILABLE
+    if _REDIS_AVAILABLE is None:
+        try:
+            from app.core.cache import get_redis
+            _REDIS_AVAILABLE = get_redis() is not None
+        except Exception:
+            _REDIS_AVAILABLE = False
+    return _REDIS_AVAILABLE
 
 
 def _cleanup_attempts(ip: str):
@@ -132,6 +145,9 @@ def _cleanup_attempts(ip: str):
 
 def registrar_intento_login(ip: str) -> bool:
     """Registra un intento de login. Retorna False si excedió el límite."""
+    if _use_redis_rate_limit():
+        from app.core.cache import redis_rate_limit_check
+        return redis_rate_limit_check(ip)
     _cleanup_attempts(ip)
     if len(_login_attempts.get(ip, [])) >= MAX_LOGIN_ATTEMPTS:
         return False
@@ -141,12 +157,18 @@ def registrar_intento_login(ip: str) -> bool:
 
 def esta_bloqueado(ip: str) -> bool:
     """Verifica si una IP está bloqueada por intentos fallidos"""
+    if _use_redis_rate_limit():
+        from app.core.cache import redis_is_blocked
+        return redis_is_blocked(ip)
     _cleanup_attempts(ip)
     return len(_login_attempts.get(ip, [])) >= MAX_LOGIN_ATTEMPTS
 
 
 def limpiar_intento(ip: str):
     """Limpia los intentos después de login exitoso"""
+    if _use_redis_rate_limit():
+        from app.core.cache import redis_rate_limit_reset
+        redis_rate_limit_reset(ip)
     _login_attempts.pop(ip, None)
 
 
