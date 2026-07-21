@@ -14,18 +14,29 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { useTranslations } from "next-intl";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transacciones", icon: ArrowLeftRight },
-  { href: "/budgets", label: "Presupuestos", icon: PiggyBank },
-  { href: "/goals", label: "Metas", icon: Target },
-  { href: "/chat", label: "Asistente IA", icon: Bot },
-];
+function getLocale(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments[0] || "es";
+}
 
 export function Sidebar() {
   const pathname = usePathname();
+  const locale = getLocale(pathname);
   const { user, doLogout } = useAuth();
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
+  const navItems = [
+    { href: `/${locale}/dashboard`, label: t("dashboard"), icon: LayoutDashboard },
+    { href: `/${locale}/transactions`, label: t("transactions"), icon: ArrowLeftRight },
+    { href: `/${locale}/budgets`, label: t("budgets"), icon: PiggyBank },
+    { href: `/${locale}/goals`, label: t("goals"), icon: Target },
+    { href: `/${locale}/chat`, label: t("chat"), icon: Bot },
+  ];
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen border-r border-border bg-card/50 backdrop-blur-xl p-4 fixed left-0 top-0 z-40">
@@ -58,31 +69,33 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border pt-4 mt-4">
-        <div className="flex items-center gap-3 px-2 mb-3">
-          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
+        <div className="flex items-center gap-2 px-2 mb-3">
+          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary shrink-0">
             {user?.username?.[0]?.toUpperCase() || "U"}
           </div>
-          <span className="text-sm font-medium truncate">{user?.username}</span>
+          <span className="text-sm font-medium truncate flex-1">{user?.username}</span>
+          <LanguageSelector />
+          <ThemeToggle />
         </div>
         <div className="space-y-1">
           <Link
-            href="/settings"
+            href={`/${locale}/settings`}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-              pathname === "/settings"
+              pathname === `/${locale}/settings`
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
           >
             <Settings className="h-4 w-4" />
-            Configuración
+            {t("settings")}
           </Link>
           <button
             onClick={doLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
           >
             <LogOut className="h-4 w-4" />
-            Cerrar sesión
+            {tCommon("logout")}
           </button>
         </div>
       </div>

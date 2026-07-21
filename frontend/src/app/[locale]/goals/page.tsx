@@ -16,8 +16,11 @@ import type { GoalCreate } from "@/types";
 import { Plus, Trash2, Target, Edit } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useTranslations } from "next-intl";
 
 export default function GoalsPage() {
+  const t = useTranslations("goals");
+  const tc = useTranslations("common");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -65,11 +68,11 @@ export default function GoalsPage() {
           <StaggerItem>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold">Metas de Ahorro</h1>
-                <p className="text-muted-foreground">Definí y seguí tus objetivos financieros</p>
+                <h1 className="text-2xl font-bold">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
               </div>
               <Button onClick={openCreate} className="gap-2">
-                <Plus className="h-4 w-4" /> Nueva Meta
+                <Plus className="h-4 w-4" /> {t("new")}
               </Button>
             </div>
           </StaggerItem>
@@ -91,7 +94,7 @@ export default function GoalsPage() {
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <Target className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  No tenés metas creadas. ¡Creá una!
+                  {t("empty")}
                 </CardContent>
               </Card>
             ) : (
@@ -131,7 +134,7 @@ export default function GoalsPage() {
                         </div>
                         {goal.fecha_limite && (
                           <p className="text-xs text-muted-foreground">
-                            Fecha límite: {formatDate(goal.fecha_limite)}
+                            {t("deadline")} {formatDate(goal.fecha_limite)}
                           </p>
                         )}
                         {!completed && (
@@ -139,7 +142,7 @@ export default function GoalsPage() {
                             <div className="flex gap-2">
                               <Input
                                 type="number"
-                                placeholder="Agregar..."
+                                placeholder={t("addFunds")}
                                 className="h-8 text-xs"
                                 id={`add-${goal.id}`}
                               />
@@ -156,7 +159,7 @@ export default function GoalsPage() {
                                   }
                                 }}
                               >
-                                + Ahorrar
+                                {t("saveButton")}
                               </Button>
                             </div>
                           </div>
@@ -174,21 +177,21 @@ export default function GoalsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar" : "Nueva"} Meta</DialogTitle>
+            <DialogTitle>{editingId ? t("editTitle") : t("newTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Nombre</Label>
+              <Label>{t("name")}</Label>
               <Input
                 value={form.nombre}
                 onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                placeholder="Ej: Viaje a Europa"
+                placeholder={t("namePlaceholder")}
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Objetivo ($)</Label>
+                <Label>{t("target")}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -199,7 +202,7 @@ export default function GoalsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Fecha límite</Label>
+                <Label>{t("targetDate")}</Label>
                 <Input
                   type="date"
                   value={form.fecha_limite || ""}
@@ -208,16 +211,16 @@ export default function GoalsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Categoría (opcional)</Label>
+              <Label>{t("categoryOptional")}</Label>
               <Input
                 value={form.categoria || ""}
                 onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value || null }))}
-                placeholder="Ej: Viajes"
+                placeholder={t("categoryPlaceholder")}
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit">{editingId ? "Actualizar" : "Crear"}</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{tc("cancel")}</Button>
+              <Button type="submit">{editingId ? tc("update") : tc("create")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -225,9 +228,9 @@ export default function GoalsPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Eliminar meta"
-        description="¿Estás seguro de que querés eliminar esta meta? Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
+        title={t("deleteTitle")}
+        description={t("deleteDescription")}
+        confirmLabel={tc("delete")}
         onConfirm={() => {
           if (deleteTargetId) deleteGoal(deleteTargetId);
         }}

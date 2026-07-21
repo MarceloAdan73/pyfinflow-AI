@@ -2,8 +2,11 @@
 
 import { Sidebar } from "./sidebar";
 import { Navbar } from "./navbar";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  useKeyboardShortcuts();
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />

@@ -8,16 +8,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
+import { CURRENCIES, type CurrencyCode } from "@/lib/utils";
+import { useCurrency } from "@/lib/use-currency";
 import type { AIProviderSettings, AIStatusResponse } from "@/types";
 import {
   User, Key, Bot, Save, Loader2, CheckCircle2, XCircle,
-  Settings, Zap, Server, Brain,
+  Settings, Zap, Server, Brain, DollarSign,
 } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
+import { useTranslations } from "next-intl";
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
+  const tProfile = useTranslations("settings.profile");
+  const tSecurity = useTranslations("settings.security");
+  const tAi = useTranslations("settings.ai");
+  const tc = useTranslations("common");
   const { user } = useAuth();
   const [aiSettings, setAiSettings] = useState<AIProviderSettings | null>(null);
   const [aiStatus, setAiStatus] = useState<AIStatusResponse | null>(null);
@@ -25,6 +34,15 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"ok" | "fail" | null>(null);
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [currency, setCurrency] = useCurrency();
 
   useEffect(() => {
     api<AIProviderSettings>("/ai/settings").then(setAiSettings).catch(() => {});
@@ -63,14 +81,48 @@ export default function SettingsPage() {
     setAiSettings((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
+  const handlePasswordChange = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      setPasswordError(tSecurity("passwordMismatch"));
+      return;
+    }
+
+    if (passwordForm.new_password.length < 6) {
+      setPasswordError(tSecurity("passwordMinLength"));
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await api("/auth/password", {
+        method: "PUT",
+        body: JSON.stringify({
+          current_password: passwordForm.current_password,
+          new_password: passwordForm.new_password,
+        }),
+      });
+      setPasswordSuccess(true);
+      setPasswordForm({ current_password: "", new_password: "", confirm_password: "" });
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : tc("error");
+      setPasswordError(message);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <PageTransition>
         <StaggerContainer className="space-y-6 max-w-2xl">
           <StaggerItem>
             <div>
-              <h1 className="text-2xl font-bold">Configuración</h1>
-              <p className="text-muted-foreground">Gestioná tu cuenta y asistente IA</p>
+              <h1 className="text-2xl font-bold">{t("title")}</h1>
+              <p className="text-muted-foreground">{t("description")}</p>
             </div>
           </StaggerItem>
 
@@ -83,26 +135,55 @@ export default function SettingsPage() {
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Perfil</CardTitle>
-                    <CardDescription>Información de tu cuenta</CardDescription>
+                    <CardTitle className="text-base">{tProfile("title")}</CardTitle>
+                    <CardDescription>{tProfile("description")}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Usuario</p>
+                    <p className="text-sm text-muted-foreground">{tProfile("username")}</p>
                     <p className="font-medium">{user?.username}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Rol</p>
+                    <p className="text-sm text-muted-foreground">{tProfile("role")}</p>
                     <p className="font-medium capitalize">{user?.role}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">ID de usuario</p>
+                  <p className="text-sm text-muted-foreground">{tProfile("userId")}</p>
                   <p className="font-mono text-xs text-muted-foreground">{user?.id}</p>
                 </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+
+          {/* Currency */}
+          <StaggerItem>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{tProfile("currencyTitle")}</CardTitle>
+                    <CardDescription>{tProfile("currencyDescription")}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                >
+                  {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+                    <option key={code} value={code}>
+                      {CURRENCIES[code].symbol} {CURRENCIES[code].name}
+                    </option>
+                  ))}
+                </Select>
               </CardContent>
             </Card>
           </StaggerItem>
@@ -116,15 +197,56 @@ export default function SettingsPage() {
                     <Key className="h-5 w-5 text-amber-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">Seguridad</CardTitle>
-                    <CardDescription>Cambiar contraseña</CardDescription>
+                    <CardTitle className="text-base">{tSecurity("title")}</CardTitle>
+                    <CardDescription>{tSecurity("description")}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Próximamente podrás cambiar tu contraseña desde aquí.
-                </p>
+              <CardContent className="space-y-4">
+                {passwordSuccess && (
+                  <p className="text-sm text-emerald-400">{tSecurity("success")}</p>
+                )}
+                {passwordError && (
+                  <p className="text-sm text-destructive">{passwordError}</p>
+                )}
+                <div className="space-y-2">
+                  <Label className="text-sm">{tSecurity("currentPassword")}</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.current_password}
+                    onChange={(e) => setPasswordForm((f) => ({ ...f, current_password: e.target.value }))}
+                    placeholder={tSecurity("currentPasswordPlaceholder")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">{tSecurity("newPassword")}</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.new_password}
+                    onChange={(e) => setPasswordForm((f) => ({ ...f, new_password: e.target.value }))}
+                    placeholder={tSecurity("newPasswordPlaceholder")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">{tSecurity("confirmNewPassword")}</Label>
+                  <Input
+                    type="password"
+                    value={passwordForm.confirm_password}
+                    onChange={(e) => setPasswordForm((f) => ({ ...f, confirm_password: e.target.value }))}
+                    placeholder={tSecurity("confirmPasswordPlaceholder")}
+                  />
+                </div>
+                <Button
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword || !passwordForm.current_password || !passwordForm.new_password}
+                >
+                  {changingPassword ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Key className="h-4 w-4 mr-2" />
+                  )}
+                  {tSecurity("updateButton")}
+                </Button>
               </CardContent>
             </Card>
           </StaggerItem>
@@ -138,15 +260,15 @@ export default function SettingsPage() {
                     <Bot className="h-5 w-5 text-violet-400" />
                   </div>
                   <div className="flex-1">
-                    <CardTitle className="text-base">Asistente IA</CardTitle>
-                    <CardDescription>Configurá los proveedores de inteligencia artificial</CardDescription>
+                    <CardTitle className="text-base">{tAi("title")}</CardTitle>
+                    <CardDescription>{tAi("description")}</CardDescription>
                   </div>
                   {aiStatus && (
                     <Badge variant={aiStatus.active_provider !== "local_rules" ? "default" : "secondary"}>
                       {aiStatus.active_provider !== "local_rules" ? (
-                        <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Activo: {aiStatus.active_provider}</span>
+                        <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> {tAi("activeProvider", { provider: aiStatus.active_provider })}</span>
                       ) : (
-                        <span className="flex items-center gap-1"><XCircle className="h-3 w-3" /> Sin proveedor activo</span>
+                        <span className="flex items-center gap-1"><XCircle className="h-3 w-3" /> {tAi("noProvider")}</span>
                       )}
                     </Badge>
                   )}
@@ -155,7 +277,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-6">
                 {!aiSettings ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Cargando configuración...
+                    <Loader2 className="h-4 w-4 animate-spin" /> {tAi("loading")}
                   </div>
                 ) : (
                   <>
@@ -163,10 +285,10 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Zap className="h-4 w-4 text-muted-foreground" />
-                        <Label className="text-sm font-medium">Prioridad de proveedores</Label>
+                        <Label className="text-sm font-medium">{tAi("providerPriority")}</Label>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Orden en que se intentan los proveedores. El primero disponible será el activo.
+                        {tAi("providerPriorityDescription")}
                       </p>
                       <Input
                         value={aiSettings.provider_priority}
@@ -181,16 +303,16 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Server className="h-4 w-4 text-muted-foreground" />
-                        <Label className="text-sm font-medium">Ollama (local)</Label>
+                        <Label className="text-sm font-medium">{tAi("ollama")}</Label>
                         {aiStatus?.providers.find((p) => p.name === "ollama")?.available ? (
-                          <Badge variant="default" className="text-xs">Conectado</Badge>
+                          <Badge variant="default" className="text-xs">{tAi("connected")}</Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs">No disponible</Badge>
+                          <Badge variant="secondary" className="text-xs">{tAi("disconnected")}</Badge>
                         )}
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">URL del servidor</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("serverUrl")}</Label>
                           <Input
                             value={aiSettings.ollama_url}
                             onChange={(e) => update("ollama_url", e.target.value)}
@@ -198,7 +320,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Modelo</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("model")}</Label>
                           <Input
                             value={aiSettings.ollama_model}
                             onChange={(e) => update("ollama_model", e.target.value)}
@@ -214,16 +336,16 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Brain className="h-4 w-4 text-muted-foreground" />
-                        <Label className="text-sm font-medium">HuggingFace</Label>
+                        <Label className="text-sm font-medium">{tAi("huggingface")}</Label>
                         {aiStatus?.providers.find((p) => p.name === "huggingface")?.available ? (
-                          <Badge variant="default" className="text-xs">Conectado</Badge>
+                          <Badge variant="default" className="text-xs">{tAi("connected")}</Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs">No disponible</Badge>
+                          <Badge variant="secondary" className="text-xs">{tAi("disconnected")}</Badge>
                         )}
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Token API</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("token")}</Label>
                           <Input
                             type="password"
                             value={aiSettings.hf_token}
@@ -232,7 +354,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Modelo</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("model")}</Label>
                           <Input
                             value={aiSettings.hf_model}
                             onChange={(e) => update("hf_model", e.target.value)}
@@ -248,16 +370,16 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Settings className="h-4 w-4 text-muted-foreground" />
-                        <Label className="text-sm font-medium">Google Gemini</Label>
+                        <Label className="text-sm font-medium">{tAi("gemini")}</Label>
                         {aiStatus?.providers.find((p) => p.name === "gemini")?.available ? (
-                          <Badge variant="default" className="text-xs">Conectado</Badge>
+                          <Badge variant="default" className="text-xs">{tAi("connected")}</Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs">No disponible</Badge>
+                          <Badge variant="secondary" className="text-xs">{tAi("disconnected")}</Badge>
                         )}
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">API Key</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("apiKey")}</Label>
                           <Input
                             type="password"
                             value={aiSettings.gemini_api_key}
@@ -266,7 +388,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Modelo</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("model")}</Label>
                           <Input
                             value={aiSettings.gemini_model}
                             onChange={(e) => update("gemini_model", e.target.value)}
@@ -280,10 +402,10 @@ export default function SettingsPage() {
 
                     {/* Generation Parameters */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium">Parámetros de generación</Label>
+                      <Label className="text-sm font-medium">{tAi("generationParams")}</Label>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Max tokens</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("maxTokens")}</Label>
                           <Input
                             type="number"
                             min={50}
@@ -293,7 +415,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Temperatura</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("temperature")}</Label>
                           <Input
                             type="number"
                             min={0}
@@ -304,7 +426,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Contexto (msgs)</Label>
+                          <Label className="text-xs text-muted-foreground">{tAi("contextWindow")}</Label>
                           <Input
                             type="number"
                             min={1}
@@ -320,14 +442,14 @@ export default function SettingsPage() {
 
                     {/* Embedding Model */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium">Modelo de embeddings (RAG)</Label>
+                      <Label className="text-sm font-medium">{tAi("embeddingModel")}</Label>
                       <Input
                         value={aiSettings.embedding_model}
                         onChange={(e) => update("embedding_model", e.target.value)}
                         placeholder="all-MiniLM-L6-v2"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Modelo local para generar embeddings de tus transacciones.
+                        {tAi("embeddingDescription")}
                       </p>
                     </div>
 
@@ -341,7 +463,7 @@ export default function SettingsPage() {
                         ) : (
                           <Save className="h-4 w-4 mr-2" />
                         )}
-                        {saved ? "Guardado" : "Guardar"}
+                        {saved ? tc("saved") : tc("save")}
                       </Button>
                       <Button
                         variant="outline"
@@ -357,7 +479,7 @@ export default function SettingsPage() {
                         ) : (
                           <Zap className="h-4 w-4 mr-2" />
                         )}
-                        {testResult === "ok" ? "Conectado" : testResult === "fail" ? "Sin conexión" : "Probar conexión"}
+                        {testResult === "ok" ? tAi("testSuccess") : testResult === "fail" ? tAi("testFail") : tAi("testConnection")}
                       </Button>
                     </div>
                   </>

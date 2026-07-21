@@ -9,8 +9,10 @@ import { api } from "@/lib/api";
 import type { ChatMessage, AIResponse, AIStatusResponse } from "@/types";
 import { Bot, Send, User, Loader2 } from "lucide-react";
 import { PageTransition, FadeIn } from "@/components/ui/motion";
+import { useTranslations } from "next-intl";
 
 export default function ChatPage() {
+  const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,7 @@ export default function ChatPage() {
         id: `err-${Date.now()}`,
         user_id: "",
         role: "assistant",
-        content: "Disculpá, hubo un error al procesar tu consulta. Intentá de nuevo.",
+        content: t("error"),
         provider: null,
         tokens_used: 0,
         created_at: new Date().toISOString(),
@@ -76,15 +78,15 @@ export default function ChatPage() {
       <PageTransition>
         <div className="flex flex-col h-[calc(100vh-6rem)]">
           <div className="mb-4">
-            <h1 className="text-2xl font-bold">Asistente IA</h1>
-            <p className="text-muted-foreground">Consultá sobre tus finanzas con inteligencia artificial</p>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground">{t("description")}</p>
           </div>
 
           <Card className="flex-1 flex flex-col overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="flex items-center gap-2">
                 <Bot className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm">Chat</CardTitle>
+                <CardTitle className="text-sm">{t("chatTitle")}</CardTitle>
               </div>
               {status && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -98,10 +100,10 @@ export default function ChatPage() {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                   <Bot className="h-16 w-16 mb-4 opacity-20" />
-                  <p className="text-lg font-medium mb-1">¿En qué puedo ayudarte?</p>
-                  <p className="text-sm">Preguntá sobre tus gastos, presupuestos, metas o tendencias financieras</p>
+                  <p className="text-lg font-medium mb-1">{t("greeting")}</p>
+                  <p className="text-sm">{t("greetingDescription")}</p>
                   <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                    {["¿Cuánto gasté este mes?", "¿Cuáles son mis categorías top?", "Dame consejos de ahorro"].map((q) => (
+                    {[t("suggestion1"), t("suggestion2"), t("suggestion3")].map((q) => (
                       <Button
                         key={q}
                         variant="outline"
@@ -154,7 +156,7 @@ export default function ChatPage() {
                   </div>
                   <div className="bg-secondary rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground">Pensando...</span>
+                    <span className="text-sm text-muted-foreground">{t("thinking")}</span>
                   </div>
                 </div>
               )}
@@ -173,7 +175,7 @@ export default function ChatPage() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Escribí tu consulta..."
+                  placeholder={t("inputPlaceholder")}
                   disabled={loading}
                   className="flex-1"
                 />

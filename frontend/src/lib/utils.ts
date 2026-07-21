@@ -5,8 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatMoney(amount: number, currency: string = "ARS"): string {
-  return new Intl.NumberFormat("es-AR", {
+export const CURRENCIES = {
+  ARS: { symbol: "$", locale: "es-AR", name: "Peso argentino" },
+  USD: { symbol: "$", locale: "en-US", name: "US Dollar" },
+  EUR: { symbol: "€", locale: "de-DE", name: "Euro" },
+  BRL: { symbol: "R$", locale: "pt-BR", name: "Real brasileño" },
+} as const;
+
+export type CurrencyCode = keyof typeof CURRENCIES;
+
+export function formatMoney(amount: number, currency: CurrencyCode = "ARS"): string {
+  const config = CURRENCIES[currency] || CURRENCIES.ARS;
+  return new Intl.NumberFormat(config.locale, {
     style: "currency",
     currency: currency,
     minimumFractionDigits: 0,

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,34 +11,31 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
 
-export default function RegisterPage() {
+function getLocale(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments[0] || "es";
+}
+
+export default function LoginPage() {
+  const t = useTranslations("auth.login");
+  const pathname = usePathname();
+  const locale = getLocale(pathname);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { doRegister } = useAuth();
+  const { doLogin } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
     setLoading(true);
     try {
-      await doRegister(username, password);
-      router.replace("/dashboard");
+      await doLogin(username, password);
+      router.replace(`/${locale}/dashboard`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrarse");
+      setError(err instanceof Error ? err.message : t("error"));
     } finally {
       setLoading(false);
     }
@@ -57,8 +55,8 @@ export default function RegisterPage() {
               <Wallet className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-          <CardDescription>Empezá a administrar tus finanzas</CardDescription>
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -69,34 +67,23 @@ export default function RegisterPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="username">Usuario</Label>
+              <Label htmlFor="username">{t("username")}</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Elegí un usuario"
+                placeholder={t("usernamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm">Confirmar contraseña</Label>
-              <Input
-                id="confirm"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repetí la contraseña"
+                placeholder="••••••••"
                 required
               />
             </div>
@@ -106,13 +93,13 @@ export default function RegisterPage() {
               {loading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : (
-                "Crear Cuenta"
+                t("submit")
               )}
             </Button>
             <p className="text-sm text-muted-foreground">
-              ¿Ya tenés cuenta?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Iniciá sesión
+              {t("noAccount")}{" "}
+              <Link href={`/${locale}/register`} className="text-primary hover:underline">
+                {t("register")}
               </Link>
             </p>
           </CardFooter>

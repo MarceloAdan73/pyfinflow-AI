@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,23 +11,42 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
 
-export default function LoginPage() {
+function getLocale(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments[0] || "es";
+}
+
+export default function RegisterPage() {
+  const t = useTranslations("auth.register");
+  const pathname = usePathname();
+  const locale = getLocale(pathname);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { doLogin } = useAuth();
+  const { doRegister } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError(t("passwordMismatch"));
+      return;
+    }
+    if (password.length < 6) {
+      setError(t("passwordMinLength"));
+      return;
+    }
+
     setLoading(true);
     try {
-      await doLogin(username, password);
-      router.replace("/dashboard");
+      await doRegister(username, password);
+      router.replace(`/${locale}/dashboard`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      setError(err instanceof Error ? err.message : t("error"));
     } finally {
       setLoading(false);
     }
@@ -46,8 +66,8 @@ export default function LoginPage() {
               <Wallet className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-          <CardDescription>Accedé a tu cuenta de PyStreamFlow</CardDescription>
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -58,23 +78,34 @@ export default function LoginPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="username">Usuario</Label>
+              <Label htmlFor="username">{t("username")}</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Tu usuario"
+                placeholder={t("usernamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t("passwordPlaceholder")}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">{t("confirmPassword")}</Label>
+              <Input
+                id="confirm"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder={t("confirmPasswordPlaceholder")}
                 required
               />
             </div>
@@ -84,13 +115,13 @@ export default function LoginPage() {
               {loading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : (
-                "Iniciar Sesión"
+                t("submit")
               )}
             </Button>
             <p className="text-sm text-muted-foreground">
-              ¿No tenés cuenta?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Registrate
+              {t("hasAccount")}{" "}
+              <Link href={`/${locale}/login`} className="text-primary hover:underline">
+                {t("login")}
               </Link>
             </p>
           </CardFooter>

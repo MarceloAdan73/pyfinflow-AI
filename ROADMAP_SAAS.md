@@ -35,7 +35,7 @@
 | **App** | Streamlit monolito (~2972 líneas) + API REST FastAPI |
 | **Frontend** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 |
 | **Backend** | FastAPI + SQLAlchemy + Repository Pattern + Alembic |
-| **DB** | PostgreSQL (producción) + SQLite (dev/tests) |
+| **DB** | PostgreSQL (producción) + SQLite (desarrollo/tests) |
 | **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo + configuración per-user desde UI |
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
 | **API** | 25 endpoints REST: /auth, /transactions, /budgets, /goals, /ai, /health |
@@ -46,7 +46,7 @@
 | **Deploy actual** | Streamlit Cloud |
 | **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | Session 20/07 — IA fixes + UI polish + AI settings |
+| **Último commit dev** | 21/07/2026 (Fase 7 completa - i18n + Multi-moneda) |
 | **Cache** | Redis con fallback a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
 
 ### Decisiones técnicas clave (contexto)
@@ -654,8 +654,8 @@ frontend/
 - [x] Gráfico de barras — tendencia mensual (Recharts BarChart)
 - [x] Lista de transacciones recientes (últimas 5)
 - [ ] Alertas de presupuesto ( cards con progress bars )
-- [ ] Date range picker para filtrar período
-- [ ] Indicadores visuales de tendencia (↑↓→)
+- [x] Date range picker para filtrar período
+- [x] Indicadores visuales de tendencia (↑↓→)
 - [x] Loading skeletons (Shadcn Skeleton)
 
 ### 6.3 Transacciones (2 días)
@@ -665,7 +665,7 @@ frontend/
 - [x] Modal de edición inline
 - [x] Confirmación de eliminación
 - [x] Empty state cuando no hay transacciones
-- [ ] Búsqueda por texto en descripción
+- [x] Búsqueda por texto en descripción
 
 ### 6.4 Presupuestos y Metas (1-2 días)
 - [x] Cards de presupuesto con progress bars animadas
@@ -677,15 +677,15 @@ frontend/
 
 ### 6.5 Settings y pulido (1 día)
 - [x] Perfil de usuario (username, rol)
-- [ ] Cambio de contraseña con validación
-- [ ] Toggle de tema oscuro/claro (persiste en localStorage)
+- [x] Cambio de contraseña con validación
+- [x] Toggle de tema oscuro/claro (persiste en localStorage)
 - [x] Responsive final: mobile, tablet, desktop
 - [x] Transiciones de página con Framer Motion
 - [x] Configuración IA completa: proveedores, Ollama URL/modelo, API keys, parámetros de generación
 - [x] ConfirmDialog modal para eliminar (reemplaza `confirm()` nativo)
 - [x] Colores de gráficos suavizados (BarChart + PieChart)
-- [ ] Keyboard shortcuts (Ctrl+N = nueva transacción)
-- [ ] 404 page personalizada
+- [x] Keyboard shortcuts (Ctrl+N nueva txn, Ctrl+F buscar, Ctrl+D/B/G/I, navigation)
+- [x] 404 page personalizada
 
 **Criterio de aceptación:** Frontend Next.js profesional, responsive, con componentes Shadcn/UI. Tema oscuro consistente. Todos los endpoints de la API consumidos. Deploy en Vercel.
 
@@ -1386,5 +1386,89 @@ frontend/src/types/index.ts                   → AIProviderSettings type
 - `npm run lint`: 0 errors, 0 warnings
 - `npm run build`: 10/10 rutas compilan
 - `pytest`: 113/113 tests pasando
+
+---
+
+### 21/07/2026 - Session: Fase 6 polish completo
+
+**Todos los pendientes de Fase 6 completados:**
+
+**Archivos creados:**
+```
+frontend/src/app/not-found.tsx                  → 404 page personalizada con link al dashboard
+frontend/src/components/ui/theme-toggle.tsx     → Toggle dark/claro con persistencia en localStorage
+frontend/src/hooks/use-keyboard-shortcuts.ts    → Hook global de shortcuts de teclado
+```
+
+**Archivos modificados:**
+```
+frontend/src/app/dashboard/page.tsx             → Date range picker (desde/hasta) + filtrado de transacciones
+frontend/src/app/transactions/page.tsx          → Búsqueda por texto + Ctrl+N/Ctrl+F shortcuts
+frontend/src/app/settings/page.tsx              → Formulario completo de cambio de contraseña (con validación)
+frontend/src/app/layout.tsx                     → Script anti-flash para tema + suppressHydrationWarning
+frontend/src/app/globals.css                    → Variables CSS para tema claro (light) + tema oscuro (.dark)
+frontend/src/components/dashboard/summary-cards.tsx → Indicadores de tendencia ↑↓→ (mes actual vs anterior)
+frontend/src/components/layout/sidebar.tsx      → ThemeToggle integrado junto al usuario
+frontend/src/components/layout/dashboard-layout.tsx → Keyboard shortcuts globales
+```
+
+**Features implementadas:**
+
+1. **Date range picker** — Filtros "desde" y "hasta" en el dashboard con botón "Limpiar"
+2. **Indicadores de tendencia** — SummaryCards muestran ↑↓→ comparando mes actual vs anterior
+3. **Búsqueda por texto** — Input de búsqueda en transacciones (filtra por descripción y categoría)
+4. **Cambio de contraseña** — Formulario completo con validación (6+ chars, coincidencia, llama a `PUT /auth/password`)
+5. **Toggle dark/claro** — Botón en sidebar, persiste en localStorage, script anti-flash en `<head>`
+6. **Keyboard shortcuts** — Ctrl+N (nueva txn), Ctrl+F (buscar), Ctrl+D/B/G/I/navigate, Ctrl+, (settings)
+7. **404 page** — Página personalizada con gradiente 404, botones "Volver" y "Dashboard"
+
+**Verificación:**
+- `npm run lint`: 0 errors, 0 warnings
+- `npm run build`: 12/12 rutas compilan (10 originales + `/_not-found` + `/`)
+
+---
+
+### 21/07/2026 - Session: Fase 7 i18n + Multi-moneda
+
+**Fase 7 completada: Multi-idioma (i18n) + Multi-moneda**
+
+**Archivos creados:**
+```
+frontend/src/i18n/config.ts                       → Definición de locales (es, en, pt)
+frontend/src/i18n/request.ts                      → getRequestConfig para next-intl
+frontend/src/i18n/index.ts                        → Helpers de navegación (Link, redirect, useRouter, usePathname)
+frontend/middleware.ts                            → Middleware next-intl para routing por locale
+frontend/messages/es.json                         → Traducciones español (~135 keys)
+frontend/messages/en.json                         → Traducciones inglés
+frontend/messages/pt.json                         → Traducciones portugués
+frontend/src/components/ui/language-selector.tsx  → Selector de idioma (globe icon + Select)
+frontend/src/components/layout/providers.tsx      → Wrapper NextIntlClientProvider
+frontend/src/lib/currency.ts                      → Utilidades de conversión de moneda con cache
+frontend/src/lib/use-currency.ts                  → Hook de moneda preferida (localStorage)
+frontend/src/app/[locale]/layout.tsx              → Layout localizado con Providers wrapper
+frontend/src/app/[locale]/page.tsx                → Redirect locale-aware
+frontend/src/app/[locale]/not-found.tsx           → 404 localizado
+frontend/src/app/[locale]/login/page.tsx          → Login localizado
+frontend/src/app/[locale]/register/page.tsx       → Registro localizado
+frontend/src/app/[locale]/dashboard/page.tsx      → Dashboard localizado
+frontend/src/app/[locale]/transactions/page.tsx   → Transacciones localizadas
+frontend/src/app/[locale]/budgets/page.tsx        → Presupuestos localizados
+frontend/src/app/[locale]/goals/page.tsx          → Metas localizadas
+frontend/src/app/[locale]/chat/page.tsx           → Chat localizado
+frontend/src/app/[locale]/settings/page.tsx       → Settings localizado + selector de moneda
+```
+
+**Features implementadas:**
+
+1. **Multi-idioma (i18n)** — 3 idiomas: español (default), inglés, portugués. Selector en sidebar con icono globe.
+2. **Routing localizado** — Todas las rutas bajo `/[locale]/`, middleware redirige a locale por defecto.
+3. **Traducciones completas** — ~135 keys por idioma cubriendo auth, dashboard, transacciones, presupuestos, metas, chat, settings, 404.
+4. **Multi-moneda** — 4 monedas: ARS, USD, EUR, BRL. Selector en settings con persistencia en localStorage.
+5. **FormatMoney locale-aware** — `Intl.NumberFormat` con locale y formato por moneda.
+6. **Conversión de moneda** — `lib/currency.ts` con API open.er-api.com, cache en localStorage (1h TTL).
+
+**Verificación:**
+- `npm run lint`: 0 errors, 0 warnings
+- `npm run build`: 10/10 rutas bajo `[locale]` compilan correctamente
 
 ---

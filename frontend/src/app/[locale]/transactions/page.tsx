@@ -10,11 +10,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
 import { useTransactions } from "@/hooks/use-transactions";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { formatMoney, formatDate } from "@/lib/utils";
 import type { TransactionCreate } from "@/types";
-import { Plus, Trash2, Edit, Filter } from "lucide-react";
+import { Plus, Trash2, Edit, Filter, Search } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useTranslations } from "next-intl";
 
 const categorias = [
   "Alimentación", "Transporte", "Servicios", "Ocio", "Salud",
@@ -22,12 +24,24 @@ const categorias = [
 ];
 
 export default function TransactionsPage() {
+  const t = useTranslations("transactions");
+  const tc = useTranslations("common");
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { transactions, isLoading, createTransaction, updateTransaction, deleteTransaction } = useTransactions(filters);
+
+  const filteredTransactions = transactions.filter((txn) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      txn.descripcion?.toLowerCase().includes(q) ||
+      txn.categoria?.toLowerCase().includes(q)
+    );
+  });
 
   const [form, setForm] = useState<TransactionCreate>({
     tipo: "Gasto",
@@ -50,6 +64,14 @@ export default function TransactionsPage() {
     });
     setDialogOpen(true);
   };
+
+  useKeyboardShortcuts({
+    "Ctrl+n": openCreate,
+    "Ctrl+f": () => {
+      const searchInput = document.querySelector<HTMLInputElement>('input[placeholder*="Buscar"]');
+      searchInput?.focus();
+    },
+  });
 
   const openEdit = (txn: typeof transactions[0]) => {
     setEditingId(txn.id);
@@ -86,11 +108,11 @@ export default function TransactionsPage() {
           <StaggerItem>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold">Transacciones</h1>
-                <p className="text-muted-foreground">Gestioná tus ingresos y gastos</p>
+                <h1 className="text-2xl font-bold">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
               </div>
               <Button onClick={openCreate} className="gap-2">
-                <Plus className="h-4 w-4" /> Nueva
+                <Plus className="h-4 w-4" /> {t("new")}
               </Button>
             </div>
           </StaggerItem>
@@ -99,22 +121,31 @@ export default function TransactionsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
+                  <div className="relative flex-1 max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder={t("searchPlaceholder")}
+                      className="pl-9"
+                    />
+                  </div>
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <Select
                     value={filters.tipo || ""}
                     onChange={(e) => setFilters((f) => ({ ...f, tipo: e.target.value }))}
                     className="w-40"
                   >
-                    <option value="">Todos</option>
-                    <option value="Ingreso">Ingresos</option>
-                    <option value="Gasto">Gastos</option>
+                    <option value="">{t("filterAll")}</option>
+                    <option value="Ingreso">{t("filterIncome")}</option>
+                    <option value="Gasto">{t("filterExpenses")}</option>
                   </Select>
                   <Select
                     value={filters.categoria || ""}
                     onChange={(e) => setFilters((f) => ({ ...f, categoria: e.target.value }))}
                     className="w-48"
                   >
-                    <option value="">Todas las categorías</option>
+                    <option value="">{t("allCategories")}</option>
                     {categorias.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
@@ -128,11 +159,13 @@ export default function TransactionsPage() {
                       <Skeleton key={i} className="h-14 w-full rounded-lg" />
                     ))}
                   </div>
-                ) : transactions.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay transacciones</p>
+                ) : filteredTransactions.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    {search ? t("noResults") : t("empty")}
+                  </p>
                 ) : (
                   <div className="space-y-2">
-                    {transactions.map((txn) => (
+                    {filteredTransactions.map((txn) => (
                       <div
                         key={txn.id}
                         className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
@@ -184,22 +217,22 @@ export default function TransactionsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar" : "Nueva"} Transacción</DialogTitle>
+            <DialogTitle>{editingId ? t("editTitle") : t("newTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Tipo</Label>
+                <Label>{t("type")}</Label>
                 <Select
                   value={form.tipo}
                   onChange={(e) => setForm((f) => ({ ...f, tipo: e.target.value as "Ingreso" | "Gasto" }))}
                 >
-                  <option value="Ingreso">Ingreso</option>
-                  <option value="Gasto">Gasto</option>
+                  <option value="Ingreso">{t("typeIncome")}</option>
+                  <option value="Gasto">{t("typeExpense")}</option>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Monto</Label>
+                <Label>{t("amount")}</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -212,7 +245,7 @@ export default function TransactionsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Categoría</Label>
+                <Label>{t("category")}</Label>
                 <Select
                   value={form.categoria}
                   onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value }))}
@@ -223,7 +256,7 @@ export default function TransactionsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Fecha</Label>
+                <Label>{t("date")}</Label>
                 <Input
                   type="date"
                   value={form.fecha}
@@ -233,16 +266,16 @@ export default function TransactionsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Descripción (opcional)</Label>
+              <Label>{t("description")}</Label>
               <Input
                 value={form.descripcion}
                 onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-                placeholder="Descripción breve"
+                placeholder={t("descriptionPlaceholder")}
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit">{editingId ? "Actualizar" : "Crear"}</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{tc("cancel")}</Button>
+              <Button type="submit">{editingId ? tc("update") : tc("create")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -250,9 +283,9 @@ export default function TransactionsPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Eliminar transacción"
-        description="¿Estás seguro de que querés eliminar esta transacción? Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
+        title={t("deleteTitle")}
+        description={t("deleteDescription")}
+        confirmLabel={tc("delete")}
         onConfirm={() => {
           if (deleteTargetId) deleteTransaction(deleteTargetId);
         }}

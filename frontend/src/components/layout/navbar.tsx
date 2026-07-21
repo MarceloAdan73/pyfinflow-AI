@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -16,18 +17,26 @@ import {
   LogOut,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transacciones", icon: ArrowLeftRight },
-  { href: "/budgets", label: "Presupuestos", icon: PiggyBank },
-  { href: "/goals", label: "Metas", icon: Target },
-  { href: "/chat", label: "Asistente IA", icon: Bot },
-];
+function getLocale(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments[0] || "es";
+}
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const locale = getLocale(pathname);
   const { doLogout } = useAuth();
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
+  const navItems = [
+    { href: `/${locale}/dashboard`, label: t("dashboard"), icon: LayoutDashboard },
+    { href: `/${locale}/transactions`, label: t("transactions"), icon: ArrowLeftRight },
+    { href: `/${locale}/budgets`, label: t("budgets"), icon: PiggyBank },
+    { href: `/${locale}/goals`, label: t("goals"), icon: Target },
+    { href: `/${locale}/chat`, label: t("chat"), icon: Bot },
+  ];
 
   return (
     <header className="md:hidden sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
@@ -64,19 +73,19 @@ export function Navbar() {
           </nav>
           <div className="border-t border-border mt-3 pt-3 flex flex-col gap-1">
             <Link
-              href="/settings"
+              href={`/${locale}/settings`}
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary"
             >
               <Settings className="h-4 w-4" />
-              Configuración
+              {t("settings")}
             </Link>
             <button
               onClick={() => { doLogout(); setMobileOpen(false); }}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
             >
               <LogOut className="h-4 w-4" />
-              Cerrar sesión
+              {tCommon("logout")}
             </button>
           </div>
         </div>

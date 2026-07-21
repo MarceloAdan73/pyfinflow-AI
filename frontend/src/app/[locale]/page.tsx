@@ -1,20 +1,27 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/auth";
+
+function getLocale(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments[0] || "es";
+}
 
 export default function Home() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = getLocale(pathname);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace(`/${locale}/dashboard`);
     } else {
-      router.replace("/login");
+      router.replace(`/${locale}/login`);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, locale]);
 
   return (
     <div className="flex h-screen items-center justify-center">

@@ -18,6 +18,7 @@ import type { BudgetCreate } from "@/types";
 import { Plus, AlertTriangle } from "lucide-react";
 import { useMemo } from "react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
+import { useTranslations } from "next-intl";
 
 const categorias = [
   "Alimentación", "Transporte", "Servicios", "Ocio", "Salud",
@@ -25,6 +26,8 @@ const categorias = [
 ];
 
 export default function BudgetsPage() {
+  const t = useTranslations("budgets");
+  const tc = useTranslations("common");
   const currentMonth = getCurrentMonth();
   const [mes, setMes] = useState(currentMonth);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,9 +45,9 @@ export default function BudgetsPage() {
   const budgetsWithSpent = useMemo(() => {
     const gastosByCategory: Record<string, number> = {};
     transactions
-      .filter((t) => t.tipo === "Gasto")
-      .forEach((t) => {
-        gastosByCategory[t.categoria] = (gastosByCategory[t.categoria] || 0) + t.monto;
+      .filter((tx) => tx.tipo === "Gasto")
+      .forEach((tx) => {
+        gastosByCategory[tx.categoria] = (gastosByCategory[tx.categoria] || 0) + tx.monto;
       });
 
     return budgets.map((b) => {
@@ -67,8 +70,8 @@ export default function BudgetsPage() {
           <StaggerItem>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold">Presupuestos</h1>
-                <p className="text-muted-foreground">Controlá tus gastos por categoría</p>
+                <h1 className="text-2xl font-bold">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
               </div>
               <div className="flex items-center gap-3">
                 <Input
@@ -78,7 +81,7 @@ export default function BudgetsPage() {
                   className="w-44"
                 />
                 <Button onClick={() => { setForm((f) => ({ ...f, mes })); setDialogOpen(true); }} className="gap-2">
-                  <Plus className="h-4 w-4" /> Nuevo
+                  <Plus className="h-4 w-4" /> {t("new")}
                 </Button>
               </div>
             </div>
@@ -100,7 +103,7 @@ export default function BudgetsPage() {
             ) : budgetsWithSpent.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
-                  No hay presupuestos para {mes}
+                  {t("empty", { month: mes })}
                 </CardContent>
               </Card>
             ) : (
@@ -112,7 +115,7 @@ export default function BudgetsPage() {
                         <h3 className="font-semibold">{b.categoria}</h3>
                         {b.excedido && (
                           <Badge variant="destructive" className="gap-1">
-                            <AlertTriangle className="h-3 w-3" /> Excedido
+                            <AlertTriangle className="h-3 w-3" /> {t("exceeded")}
                           </Badge>
                         )}
                       </div>
@@ -140,11 +143,11 @@ export default function BudgetsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nuevo Presupuesto</DialogTitle>
+            <DialogTitle>{t("newTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Categoría</Label>
+              <Label>{t("category")}</Label>
               <Select
                 value={form.categoria}
                 onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value }))}
@@ -155,7 +158,7 @@ export default function BudgetsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Límite mensual</Label>
+              <Label>{t("limit")}</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -166,8 +169,8 @@ export default function BudgetsPage() {
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit">Crear</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{tc("cancel")}</Button>
+              <Button type="submit">{tc("create")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

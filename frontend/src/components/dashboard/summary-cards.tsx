@@ -1,16 +1,49 @@
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatMoney } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useFormatMoney } from "@/lib/use-money";
 
 interface SummaryProps {
   summary: { ingresos: number; gastos: number; balance: number };
   isLoading: boolean;
+  transactions?: { tipo: string; monto: number; fecha: string; moneda?: string }[];
+  currency?: string;
 }
 
-export function SummaryCards({ summary, isLoading }: SummaryProps) {
+export function SummaryCards({ summary, isLoading, transactions = [] }: SummaryProps) {
+  const t = useTranslations("dashboard");
+  const formatMoney = useFormatMoney();
+  const trends = useMemo(() => {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+
+    const calcTrend = (tipo: string) => {
+      const current = transactions
+        .filter((t) => t.tipo === tipo && t.fecha.startsWith(currentMonth))
+        .reduce((sum, t) => sum + t.monto, 0);
+      const prev = transactions
+        .filter((t) => t.tipo === tipo && t.fecha.startsWith(prevMonth))
+        .reduce((sum, t) => sum + t.monto, 0);
+
+      if (prev === 0 && current === 0) return { direction: "stable" as const, pct: 0 };
+      if (prev === 0) return { direction: "up" as const, pct: 100 };
+      const pct = ((current - prev) / prev) * 100;
+      if (Math.abs(pct) < 1) return { direction: "stable" as const, pct: 0 };
+      return { direction: pct > 0 ? ("up" as const) : ("down" as const), pct: Math.abs(Math.round(pct)) };
+    };
+
+    return {
+      ingresos: calcTrend("Ingreso"),
+      gastos: calcTrend("Gasto"),
+    };
+  }, [transactions]);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -24,27 +57,47 @@ export function SummaryCards({ summary, isLoading }: SummaryProps) {
     );
   }
 
+  const TrendIcon = ({ direction }: { direction: "up" | "down" | "stable"; pct: number }) => {
+    if (direction === "stable") return <Minus className="h-3 w-3 text-muted-foreground" />;
+    if (direction === "up") return <ArrowUp className="h-3 w-3 text-emerald-400" />;
+    return <ArrowDown className="h-3 w-3 text-red-400" />;
+  };
+
+  const TrendBadge = ({ direction, pct }: { direction: "up" | "down" | "stable"; pct: number }) => {
+    if (direction === "stable" && pct === 0) return null;
+    return (
+      <span className={`text-xs font-medium ${
+        direction === "up" ? "text-emerald-400" : direction === "down" ? "text-red-400" : "text-muted-foreground"
+      }`}>
+        <TrendIcon direction={direction} pct={pct} /> {pct}%
+      </span>
+    );
+  };
+
   const cards = [
     {
-      title: "Ingresos",
+      title: t("income"),
       value: summary.ingresos,
       icon: TrendingUp,
       color: "text-emerald-400",
       bgColor: "bg-emerald-500/10",
+      trend: trends.ingresos,
     },
     {
-      title: "Gastos",
+      title: t("expenses"),
       value: summary.gastos,
       icon: TrendingDown,
       color: "text-red-400",
       bgColor: "bg-red-500/10",
+      trend: trends.gastos,
     },
     {
-      title: "Balance",
+      title: t("balance"),
       value: summary.balance,
       icon: Wallet,
       color: summary.balance >= 0 ? "text-emerald-400" : "text-red-400",
       bgColor: summary.balance >= 0 ? "bg-emerald-500/10" : "bg-red-500/10",
+      trend: null,
     },
   ];
 
@@ -59,8 +112,15 @@ export function SummaryCards({ summary, isLoading }: SummaryProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${card.color}`}>
-              {formatMoney(card.value)}
+            <div className="flex items-end gap-2">
+              <div className={`text-2xl font-bold ${card.color}`}>
+                {formatMoney(card.value)}
+              </div>
+              {card.trend && (
+                <div className="flex items-center gap-1 mb-1">
+                  <TrendBadge direction={card.trend.direction} pct={card.trend.pct} />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
