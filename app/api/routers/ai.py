@@ -9,6 +9,8 @@ from app.api.schemas.ai import (
     InsightAnomaly,
     AIStatusResponse,
     ProviderStatus,
+    AIProviderSettingsRequest,
+    AIProviderSettingsResponse,
 )
 from app.api.deps import get_current_user, get_repositories
 from app.repositories.factory import RepositoryFactory
@@ -181,3 +183,25 @@ def get_ai_status():
         active_provider=active,
         chromadb_available=chromadb_ok,
     )
+
+
+@router.get("/settings", response_model=AIProviderSettingsResponse)
+def get_ai_settings(
+    current_user: dict = Depends(get_current_user),
+    repos: RepositoryFactory = Depends(get_repositories),
+):
+    config = repos.ai_config.get_by_user(current_user["id"])
+    if not config:
+        config = repos.ai_config.upsert(current_user["id"], {})
+    return AIProviderSettingsResponse(**config)
+
+
+@router.put("/settings", response_model=AIProviderSettingsResponse)
+def update_ai_settings(
+    data: AIProviderSettingsRequest,
+    current_user: dict = Depends(get_current_user),
+    repos: RepositoryFactory = Depends(get_repositories),
+):
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    config = repos.ai_config.upsert(current_user["id"], update_data)
+    return AIProviderSettingsResponse(**config)

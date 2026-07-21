@@ -15,9 +15,12 @@ import { formatMoney, formatDate } from "@/lib/utils";
 import type { GoalCreate } from "@/types";
 import { Plus, Trash2, Target, Edit } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function GoalsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { goals, isLoading, createGoal, updateGoal, deleteGoal } = useGoals();
 
@@ -106,7 +109,8 @@ export default function GoalsPage() {
                               <Edit className="h-3 w-3" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => {
-                              if (confirm("¿Eliminar esta meta?")) deleteGoal(goal.id);
+                              setDeleteTargetId(goal.id);
+                              setConfirmOpen(true);
                             }}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -218,6 +222,16 @@ export default function GoalsPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Eliminar meta"
+        description="¿Estás seguro de que querés eliminar esta meta? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          if (deleteTargetId) deleteGoal(deleteTargetId);
+        }}
+      />
     </DashboardLayout>
   );
 }

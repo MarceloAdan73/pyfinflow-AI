@@ -33,22 +33,21 @@
 | Aspecto | Estado actual |
 |---|---|
 | **App** | Streamlit monolito (~2972 líneas) + API REST FastAPI |
-| **Frontend actual** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion |
-| **Frontend planeado** | ✅ Completado (Fase 6) |
+| **Frontend** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 |
 | **Backend** | FastAPI + SQLAlchemy + Repository Pattern + Alembic |
-| **DB** | PostgreSQL (producción) + SQLite en memoria (tests) |
-| **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo |
+| **DB** | PostgreSQL (producción) + SQLite (dev/tests) |
+| **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo + configuración per-user desde UI |
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
-| **API** | 23 endpoints REST: /auth, /transactions, /budgets, /goals, /ai, /health |
+| **API** | 25 endpoints REST: /auth, /transactions, /budgets, /goals, /ai, /health |
 | **Tests** | 113 tests backend (todos pasan) + 10/10 rutas frontend compilan |
 | **CI/CD** | GitHub Actions (Python 3.12, PostgreSQL service, ruff, pytest-cov) |
 | **Docker** | Dockerfile multi-stage + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
-| **Monitoring** | structlog + request logging middleware + health check (/health, /health/detailed) + métricas (/metrics, /metrics/prometheus) + alertas SMTP |
+| **Monitoring** | structlog + request logging middleware + health check + métricas + alertas SMTP |
 | **Deploy actual** | Streamlit Cloud |
 | **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
 | **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | Fase 6 (Frontend Next.js) |
-| **Cache** | Redis (`app/core/cache.py`) con fallback automático a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
+| **Último commit dev** | Session 20/07 — IA fixes + UI polish + AI settings |
+| **Cache** | Redis con fallback a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
 
 ### Decisiones técnicas clave (contexto)
 
@@ -525,8 +524,12 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
   - [x] `GET /ai/insights` - Análisis predictivo completo
   - [x] `GET /ai/suggestions` - Preguntas sugeridas
   - [x] `GET /ai/status` - Estado de providers y ChromaDB
+  - [x] `GET /ai/settings` - Configuración IA del usuario
+  - [x] `PUT /ai/settings` - Actualizar configuración IA del usuario
 - [x] Crear `app/api/schemas/ai.py` con Pydantic schemas
 - [x] Integrar router en `app/api/main.py`
+- [x] Modelo `AIProviderConfig` (per-user) en `models_db.py`
+- [x] `AIProviderConfigRepository` con upsert en `postgres_repo.py`
 
 **Criterio de aceptación:** IA con RAG funcionando. Memoria persistente. Multi-provider con fallback. Análisis predictivo básico.
 
@@ -678,6 +681,9 @@ frontend/
 - [ ] Toggle de tema oscuro/claro (persiste en localStorage)
 - [x] Responsive final: mobile, tablet, desktop
 - [x] Transiciones de página con Framer Motion
+- [x] Configuración IA completa: proveedores, Ollama URL/modelo, API keys, parámetros de generación
+- [x] ConfirmDialog modal para eliminar (reemplaza `confirm()` nativo)
+- [x] Colores de gráficos suavizados (BarChart + PieChart)
 - [ ] Keyboard shortcuts (Ctrl+N = nueva transacción)
 - [ ] 404 page personalizada
 
@@ -846,7 +852,7 @@ frontend/
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: ~65%** (Fases 0-6 completadas)
+**Progreso total: ~68%** (Fases 0-6 completadas + polish IA/UI)
 
 ---
 
@@ -1324,11 +1330,10 @@ frontend/src/types/index.ts       → TypeScript interfaces (all entities)
 | `/budgets` | Presupuestos con progress bars + alerta excedido |
 | `/goals` | Metas de ahorro + agregar fondos inline |
 | `/chat` | Chat IA con sugerencias + status provider |
-| `/settings` | Perfil de usuario |
-| `/settings` | Perfil de usuario |
+| `/settings` | Perfil + configuración IA (proveedores, modelos, API keys) |
 
-**UI Components (11):**
-Button (con motion hover/tap), Card, Input, Label, Skeleton, Badge, Separator, Dialog (con AnimatePresence), Select, Tabs, Progress
+**UI Components (12):**
+Button (con motion hover/tap), Card, Input, Label, Skeleton, Badge, Separator, Dialog (con AnimatePresence), Select, Tabs, Progress, ConfirmDialog
 
 **Motion animations (6 helpers):**
 PageTransition, StaggerContainer, StaggerItem, FadeIn, ScaleIn, SlideUp
@@ -1346,5 +1351,40 @@ PageTransition, StaggerContainer, StaggerItem, FadeIn, ScaleIn, SlideUp
 - Toggle dark/claro
 - Keyboard shortcuts
 - 404 page personalizada
+
+---
+
+### 20/07/2026 - Session: IA fixes + UI polish
+
+**Cambios realizados:**
+1. **Fix Ollama provider**: `ollama` package v0.6.x cambió la API — `Client(host=...)` en vez de `client.list(host=...)`. Provider ahora detecta correctamente.
+2. **ConfirmDialog modal**: Reemplazado `confirm()` nativo por componente `ConfirmDialog` en transacciones y metas. Modal con icono de alerta, acciones cancelar/confirmar.
+3. **Colores de gráficos suavizados**: BarChart (Ingresos vs Gastos) usa `#2dd4bf` / `#f472b6` con opacidad 0.85. PieChart usa paleta más pastel.
+4. **Configuración IA en Settings**:
+   - Backend: modelo `AIProviderConfig` (per-user), repositorio, endpoints `GET/PUT /ai/settings`
+   - Frontend: sección completa en Settings con prioridad de proveedores, Ollama URL/modelo, HuggingFace token/modelo, Gemini API key/modelo, parámetros de generación (max_tokens, temperature, context_window), modelo de embeddings, botón probar conexión
+   - Cualquier persona que clone el repo puede configurar proveedores desde la UI sin tocar `.env`
+
+**Archivos modificados:**
+```
+app/core/models_db.py                         → AIProviderConfig model
+app/repositories/postgres_repo.py             → AIProviderConfigRepository
+app/repositories/factory.py                   → ai_config property
+app/api/schemas/ai.py                         → AIProviderSettingsRequest/Response
+app/api/routers/ai.py                         → GET/PUT /ai/settings endpoints
+app/ai/providers/ollama_provider.py           → Fixed ollama 0.6.x Client API
+frontend/src/components/ui/confirm-dialog.tsx → New ConfirmDialog component
+frontend/src/app/transactions/page.tsx        → ConfirmDialog replaces confirm()
+frontend/src/app/goals/page.tsx               → ConfirmDialog replaces confirm()
+frontend/src/app/settings/page.tsx            → Full AI provider settings UI
+frontend/src/components/dashboard/monthly-chart.tsx → Softer bar colors
+frontend/src/components/dashboard/category-pie.tsx → Softer pie colors
+frontend/src/types/index.ts                   → AIProviderSettings type
+```
+
+**Verificación:**
+- `npm run lint`: 0 errors, 0 warnings
+- `npm run build`: 10/10 rutas compilan
+- `pytest`: 113/113 tests pasando
 
 ---

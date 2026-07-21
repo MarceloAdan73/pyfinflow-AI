@@ -15,7 +15,10 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.core.database import init_db
     logger.info("startup", message="PyStreamFlow API starting", version="2.0.0")
+    init_db()
+    logger.info("startup", message="Database tables ensured")
     yield
     logger.info("shutdown", message="PyStreamFlow API shutting down")
 

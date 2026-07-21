@@ -63,8 +63,8 @@ export function MonthlyChart({ data, isLoading }: Props) {
                 }}
               />
               <Legend />
-              <Bar dataKey="ingresos" name="Ingresos" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="gastos" name="Gastos" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="ingresos" name="Ingresos" fill="#2dd4bf" radius={[4, 4, 0, 0]} opacity={0.85} />
+              <Bar dataKey="gastos" name="Gastos" fill="#f472b6" radius={[4, 4, 0, 0]} opacity={0.85} />
             </BarChart>
           </ResponsiveContainer>
         )}

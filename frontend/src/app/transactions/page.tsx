@@ -14,6 +14,7 @@ import { formatMoney, formatDate } from "@/lib/utils";
 import type { TransactionCreate } from "@/types";
 import { Plus, Trash2, Edit, Filter } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const categorias = [
   "Alimentación", "Transporte", "Servicios", "Ocio", "Salud",
@@ -23,6 +24,8 @@ const categorias = [
 export default function TransactionsPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { transactions, isLoading, createTransaction, updateTransaction, deleteTransaction } = useTransactions(filters);
 
@@ -72,9 +75,8 @@ export default function TransactionsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("¿Eliminar esta transacción?")) {
-      await deleteTransaction(id);
-    }
+    setDeleteTargetId(id);
+    setConfirmOpen(true);
   };
 
   return (
@@ -245,6 +247,16 @@ export default function TransactionsPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Eliminar transacción"
+        description="¿Estás seguro de que querés eliminar esta transacción? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        onConfirm={() => {
+          if (deleteTargetId) deleteTransaction(deleteTargetId);
+        }}
+      />
     </DashboardLayout>
   );
 }

@@ -25,6 +25,7 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     custom_categories = relationship("CustomCategory", back_populates="user", cascade="all, delete-orphan")
     config = relationship("UserConfig", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    ai_config = relationship("AIProviderConfig", back_populates="user", uselist=False, cascade="all, delete-orphan")
     chat_messages = relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
 
 
@@ -124,3 +125,23 @@ class ChatMessage(Base):
     __table_args__ = (
         Index("idx_chat_messages_user_created", "user_id", "created_at"),
     )
+
+
+class AIProviderConfig(Base):
+    __tablename__ = "ai_provider_configs"
+
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    provider_priority = Column(String(200), default="ollama,huggingface,gemini")
+    ollama_url = Column(String(255), default="http://localhost:11434")
+    ollama_model = Column(String(100), default="qwen2.5-coder:7b")
+    hf_token = Column(String(255), default="")
+    hf_model = Column(String(100), default="HuggingFaceH4/zephyr-7b-beta")
+    gemini_api_key = Column(String(255), default="")
+    gemini_model = Column(String(100), default="gemini-2.0-flash")
+    embedding_model = Column(String(100), default="all-MiniLM-L6-v2")
+    max_tokens = Column(Integer, default=500)
+    temperature = Column(Float, default=0.7)
+    context_window = Column(Integer, default=20)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="ai_config")

@@ -15,9 +15,10 @@ class OllamaProvider(BaseProvider):
     def _get_client(self):
         if self._client is None:
             try:
-                import ollama
-                self._client = ollama
-            except ImportError:
+                from ollama import Client
+                self._client = Client(host=settings.OLLAMA_URL)
+            except (ImportError, Exception) as e:
+                logger.warning("ollama_client_init_failed", error=str(e))
                 return None
         return self._client
 
@@ -30,9 +31,10 @@ class OllamaProvider(BaseProvider):
             client = self._get_client()
             if not client:
                 return False
-            client.list(host=settings.OLLAMA_URL)
+            client.list()
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug("ollama_not_available", error=str(e))
             return False
 
     def chat(self, messages: list[dict], **kwargs) -> str:
@@ -47,6 +49,5 @@ class OllamaProvider(BaseProvider):
                 "num_predict": kwargs.get("max_tokens", settings.AI_MAX_TOKENS),
                 "temperature": kwargs.get("temperature", settings.AI_TEMPERATURE),
             },
-            host=settings.OLLAMA_URL,
         )
         return response["message"]["content"]

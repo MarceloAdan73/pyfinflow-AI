@@ -130,3 +130,18 @@ export interface AIStatusResponse {
   active_provider: string;
   chromadb_available: boolean;
 }
+
+export interface AIProviderSettings {
+  provider_priority: string;
+  ollama_url: string;
+  ollama_model: string;
+  hf_token: string;
+  hf_model: string;
+  gemini_api_key: string;
+  gemini_model: string;
+  embedding_model: string;
+  max_tokens: number;
+  temperature: number;
+  context_window: number;
+  updated_at: string | null;
+}

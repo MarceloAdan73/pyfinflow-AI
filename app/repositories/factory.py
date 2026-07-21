@@ -7,6 +7,7 @@ from app.repositories.postgres_repo import (
     GoalRepository as PgGoalRepo,
     UserRepository as PgUserRepo,
     ChatRepository as PgChatRepo,
+    AIProviderConfigRepository as PgAIConfigRepo,
 )
 
 
@@ -35,3 +36,7 @@ class RepositoryFactory:
     @property
     def chats(self) -> PgChatRepo:
         return PgChatRepo(self.session)
+
+    @property
+    def ai_config(self) -> PgAIConfigRepo:
+        return PgAIConfigRepo(self.session)

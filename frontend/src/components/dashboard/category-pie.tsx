@@ -9,7 +9,7 @@ interface Props {
   isLoading: boolean;
 }
 
-const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
+const COLORS = ["#818cf8", "#34d399", "#fbbf24", "#f472b6", "#a78bfa", "#67e8f9", "#fb923c", "#86efac"];
 
 export function CategoryPie({ data, isLoading }: Props) {
   if (isLoading) {

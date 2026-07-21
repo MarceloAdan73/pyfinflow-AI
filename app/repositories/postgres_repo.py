@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.models_db import (
-    User, Transaction, Budget, Goal, CustomCategory, UserConfig, ChatMessage
+    User, Transaction, Budget, Goal, CustomCategory, UserConfig, ChatMessage, AIProviderConfig
 )
 from app.repositories.base_repo import BaseRepository
 
@@ -345,4 +345,50 @@ class ChatRepository(BaseRepository):
             "provider": msg.provider,
             "tokens_used": msg.tokens_used,
             "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        }
+
+
+class AIProviderConfigRepository:
+    """Repository para configuración de proveedores IA por usuario"""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_by_user(self, user_id: str) -> Optional[dict]:
+        config = self.db.query(AIProviderConfig).filter(
+            AIProviderConfig.user_id == user_id
+        ).first()
+        return self._to_dict(config) if config else None
+
+    def upsert(self, user_id: str, data: dict) -> dict:
+        config = self.db.query(AIProviderConfig).filter(
+            AIProviderConfig.user_id == user_id
+        ).first()
+
+        if not config:
+            config = AIProviderConfig(user_id=user_id)
+            self.db.add(config)
+
+        for key, value in data.items():
+            if hasattr(config, key) and key != "user_id":
+                setattr(config, key, value)
+
+        self.db.flush()
+        return self._to_dict(config)
+
+    def _to_dict(self, config: AIProviderConfig) -> dict:
+        return {
+            "user_id": config.user_id,
+            "provider_priority": config.provider_priority,
+            "ollama_url": config.ollama_url,
+            "ollama_model": config.ollama_model,
+            "hf_token": config.hf_token,
+            "hf_model": config.hf_model,
+            "gemini_api_key": config.gemini_api_key,
+            "gemini_model": config.gemini_model,
+            "embedding_model": config.embedding_model,
+            "max_tokens": config.max_tokens,
+            "temperature": config.temperature,
+            "context_window": config.context_window,
+            "updated_at": config.updated_at.isoformat() if config.updated_at else None,
         }

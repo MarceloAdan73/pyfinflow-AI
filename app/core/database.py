@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 
@@ -6,10 +6,26 @@ from app.core.config import settings
 from app.core.models_db import Base
 
 
+is_sqlite = settings.SQLALCHEMY_DATABASE_URL.startswith("sqlite")
+
+engine_kwargs = {}
+if is_sqlite:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs.update(settings.SQLALCHEMY_ENGINE_OPTIONS)
+
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URL,
-    **settings.SQLALCHEMY_ENGINE_OPTIONS,
+    **engine_kwargs,
 )
+
+if is_sqlite:
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -29,6 +45,10 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
