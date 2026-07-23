@@ -23,13 +23,60 @@ async def lifespan(app: FastAPI):
     logger.info("shutdown", message="PyStreamFlow API shutting down")
 
 
+OPENAPI_TAGS = [
+    {
+        "name": "Autenticación",
+        "description": "Registro, login, refresh tokens y gestión de contraseña.",
+    },
+    {
+        "name": "Transacciones",
+        "description": "CRUD de ingresos y gastos con filtros por tipo, categoría y fecha.",
+    },
+    {
+        "name": "Presupuestos",
+        "description": "Gestión de presupuestos mensuales por categoría con upsert.",
+    },
+    {
+        "name": "Metas de Ahorro",
+        "description": "Creación, seguimiento y eliminación de metas de ahorro.",
+    },
+    {
+        "name": "IA",
+        "description": "Chat con asistente IA (RAG), insights predictivos, historial y configuración de providers.",
+    },
+    {
+        "name": "Sistema",
+        "description": "Health checks, métricas y monitoreo de la API.",
+    },
+]
+
 app = FastAPI(
     title="PyStreamFlow API",
-    description="API REST para gestión de finanzas personales con IA",
+    description=(
+        "API REST para gestión de finanzas personales con inteligencia artificial.\n\n"
+        "## Funcionalidades\n"
+        "- **Auth**: Registro, login JWT, refresh tokens, rate limiting\n"
+        "- **Transacciones**: CRUD completo con filtros por tipo, categoría y rango de fechas\n"
+        "- **Presupuestos**: Límites mensuales por categoría con alertas de excedido\n"
+        "- **Metas de ahorro**: Seguimiento de progreso con fecha límite\n"
+        "- **IA**: Chat RAG con multi-provider (Ollama, HuggingFace, Gemini), análisis predictivo y detección de anomalías\n"
+    ),
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
+    openapi_tags=OPENAPI_TAGS,
+    contact={
+        "name": "PyStreamFlow Team",
+        "url": "https://github.com/MarceloAdan73/pystreamflow-AI",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    servers=[
+        {"url": "http://localhost:8000", "description": "Desarrollo local"},
+    ],
 )
 
 app.add_middleware(
@@ -92,8 +139,13 @@ app.include_router(goals.router)
 app.include_router(ai.router)
 
 
-@app.get("/health")
+@app.get("/health", tags=["Sistema"], summary="Health check básico")
 def health_check():
+    """Verifica que la API esté operativa.
+
+    Retorna el estado, versión y entorno actual.
+    Útil como endpoint de monitoreo para load balancers y alertas.
+    """
     return {
         "status": "ok",
         "version": "2.0.0",
@@ -101,8 +153,16 @@ def health_check():
     }
 
 
-@app.get("/health/detailed")
+@app.get("/health/detailed", tags=["Sistema"], summary="Health check detallado")
 def health_check_detailed():
+    """Verifica la conectividad con servicios dependientes.
+
+    Testea:
+    - **Database**: Conexión SQLAlchemy a PostgreSQL/SQLite
+    - **Redis**: Disponibilidad del cache (fallback a in-memory si no está)
+
+    Retorna el estado de cada servicio y un status general (`ok` o `degraded`).
+    """
     checks = {}
 
     try:
@@ -135,13 +195,27 @@ def health_check_detailed():
     }
 
 
-@app.get("/metrics")
+@app.get("/metrics", tags=["Sistema"], summary="Métricas en JSON")
 def metrics():
+    """Retorna métricas de la aplicación en formato JSON.
+
+    Incluye:
+    - Requests por minuto y por endpoint
+    - Distribución de status codes
+    - Latencia promedio de llamadas a IA
+    - Errores por tipo
+    - Usuarios activos
+    """
     return metrics_collector.get_metrics()
 
 
-@app.get("/metrics/prometheus")
+@app.get("/metrics/prometheus", tags=["Sistema"], summary="Métricas en formato Prometheus")
 def metrics_prometheus():
+    """Retorna métricas en formato de texto Prometheus (text/plain).
+
+    Compatible con Prometheus, Grafana y cualquier collector
+    que soporte el formato estándar de métricas.
+    """
     return Response(
         content=metrics_collector.get_prometheus_text(),
         media_type="text/plain",

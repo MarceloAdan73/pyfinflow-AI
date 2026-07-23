@@ -28,12 +28,25 @@ from app.repositories.factory import RepositoryFactory
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
+@router.post(
+    "/register",
+    response_model=TokenResponse,
+    status_code=201,
+    summary="Registrar nuevo usuario",
+    response_description="Tokens de acceso y refresh",
+)
 def register(
     data: UserRegister,
     request: Request,
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Registra un nuevo usuario y retorna tokens JWT.
+
+    - **username**: 3-50 caracteres, único en el sistema
+    - **password**: mínimo 6 caracteres, hasheado con bcrypt (12 rounds)
+
+    Si el usuario ya existe, retorna 409 Conflict.
+    """
     existing = repos.users.get_by_username(data.username)
     if existing:
         raise HTTPException(
@@ -57,12 +70,25 @@ def register(
     )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Iniciar sesión",
+    response_description="Tokens de acceso y refresh",
+)
 def login(
     data: UserLogin,
     request: Request,
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Autentica un usuario y retorna tokens JWT.
+
+    - **Access token**: expira en 1 hora
+    - **Refresh token**: expira en 7 días
+
+    Implementa rate limiting: máximo 5 intentos fallidos por IP por minuto.
+    Soporte automático de migración SHA256 → bcrypt.
+    """
     ip = request.client.host if request.client else "unknown"
 
     if esta_bloqueado(ip):
@@ -114,11 +140,21 @@ def login(
     )
 
 
-@router.post("/refresh", response_model=RefreshResponse)
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    summary="Renovar access token",
+    response_description="Nuevo access token",
+)
 def refresh(
     data: RefreshRequest,
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Renueva el access token usando un refresh token válido.
+
+    El refresh token expira en 7 días. Si es inválido o expirado,
+    retorna 401 Unauthorized.
+    """
     payload = verificar_refresh_token(data.refresh_token)
     if not payload:
         raise HTTPException(
@@ -137,8 +173,18 @@ def refresh(
     return RefreshResponse(access_token=access_token)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Obtener usuario actual",
+    response_description="Datos del usuario autenticado",
+)
 def get_me(current_user: dict = Depends(get_current_user)):
+    """Retorna los datos del usuario autenticado.
+
+    Requiere un access token válido en el header `Authorization: Bearer <token>`.
+    Registra actividad del usuario para métricas.
+    """
     metrics_collector.record_user_activity(current_user["id"])
     return UserResponse(
         id=current_user["id"],
@@ -147,12 +193,23 @@ def get_me(current_user: dict = Depends(get_current_user)):
     )
 
 
-@router.put("/password")
+@router.put(
+    "/password",
+    summary="Cambiar contraseña",
+    response_description="Confirmación de cambio",
+)
 def change_password(
     data: PasswordChange,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Cambia la contraseña del usuario autenticado.
+
+    - **current_password**: contraseña actual (requerida para verificación)
+    - **new_password**: nueva contraseña (mínimo 6 caracteres)
+
+    La nueva contraseña es hasheada con bcrypt automáticamente.
+    """
     stored_hash = current_user["password_hash"]
     if not verificar_password(data.current_password, stored_hash):
         raise HTTPException(

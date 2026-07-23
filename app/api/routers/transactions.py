@@ -12,17 +12,27 @@ from app.repositories.factory import RepositoryFactory
 router = APIRouter(prefix="/transactions", tags=["Transacciones"])
 
 
-@router.get("", response_model=list[TransactionResponse])
+@router.get(
+    "",
+    response_model=list[TransactionResponse],
+    summary="Listar transacciones",
+    response_description="Lista de transacciones del usuario",
+)
 def list_transactions(
-    tipo: str | None = Query(None),
-    categoria: str | None = Query(None),
-    fecha_inicio: str | None = Query(None, alias="fecha_inicio"),
-    fecha_fin: str | None = Query(None, alias="fecha_fin"),
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
+    tipo: str | None = Query(None, description="Filtrar por tipo: 'Ingreso' o 'Gasto'"),
+    categoria: str | None = Query(None, description="Filtrar por categoría exacta"),
+    fecha_inicio: str | None = Query(None, alias="fecha_inicio", description="Fecha desde (YYYY-MM-DD)"),
+    fecha_fin: str | None = Query(None, alias="fecha_fin", description="Fecha hasta (YYYY-MM-DD)"),
+    page: int = Query(1, ge=1, description="Número de página"),
+    per_page: int = Query(20, ge=1, le=100, description="Resultados por página (1-100)"),
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Lista transacciones del usuario autenticado con filtros opcionales.
+
+    Soporta filtrado por tipo (`Ingreso`/`Gasto`), categoría y rango de fechas.
+    Resultados paginados (default: 20 por página, máximo 100).
+    """
     filters = {"user_id": current_user["id"]}
     if tipo:
         filters["tipo"] = tipo
@@ -38,12 +48,26 @@ def list_transactions(
     return all_txns[start : start + per_page]
 
 
-@router.post("", response_model=TransactionResponse, status_code=201)
+@router.post(
+    "",
+    response_model=TransactionResponse,
+    status_code=201,
+    summary="Crear transacción",
+    response_description="Transacción creada",
+)
 def create_transaction(
     data: TransactionCreate,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Crea una nueva transacción (ingreso o gasto).
+
+    - **tipo**: `"Ingreso"` o `"Gasto"`
+    - **monto**: monto positivo en la moneda indicada
+    - **categoria**: categoría predefinida o custom
+    - **fecha**: formato `YYYY-MM-DD`
+    - **moneda**: default `"ARS"`
+    """
     txn = repos.transactions.create({
         "id": f"txn_{uuid.uuid4().hex[:16]}",
         "user_id": current_user["id"],
@@ -57,25 +81,45 @@ def create_transaction(
     return txn
 
 
-@router.get("/{txn_id}", response_model=TransactionResponse)
+@router.get(
+    "/{txn_id}",
+    response_model=TransactionResponse,
+    summary="Obtener transacción",
+    response_description="Detalle de la transacción",
+)
 def get_transaction(
     txn_id: str,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Obtiene una transacción por su ID.
+
+    Solo retorna la transacción si pertenece al usuario autenticado.
+    Si no existe o no pertenece al usuario, retorna 404.
+    """
     txn = repos.transactions.get_by_id(txn_id)
     if not txn or txn["user_id"] != current_user["id"]:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")
     return txn
 
 
-@router.put("/{txn_id}", response_model=TransactionResponse)
+@router.put(
+    "/{txn_id}",
+    response_model=TransactionResponse,
+    summary="Actualizar transacción",
+    response_description="Transacción actualizada",
+)
 def update_transaction(
     txn_id: str,
     data: TransactionUpdate,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Actualiza parcialmente una transacción.
+
+    Solo actualiza los campos enviados (PATCH parcial).
+    La transacción debe pertenecer al usuario autenticado.
+    """
     txn = repos.transactions.get_by_id(txn_id)
     if not txn or txn["user_id"] != current_user["id"]:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")
@@ -85,12 +129,21 @@ def update_transaction(
     return updated
 
 
-@router.delete("/{txn_id}", status_code=204)
+@router.delete(
+    "/{txn_id}",
+    status_code=204,
+    summary="Eliminar transacción",
+)
 def delete_transaction(
     txn_id: str,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Elimina una transacción por su ID.
+
+    La transacción debe pertenecer al usuario autenticado.
+    Retorna 204 sin contenido si se eliminó correctamente.
+    """
     txn = repos.transactions.get_by_id(txn_id)
     if not txn or txn["user_id"] != current_user["id"]:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")

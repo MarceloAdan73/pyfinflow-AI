@@ -85,6 +85,11 @@ testpaths = ["tests", "test_*.py"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+markers = [
+    "unit: Unit tests (no DB, fast)",
+    "integration: Integration tests (uses DB)",
+    "slow: Slow tests",
+]
 
 [tool.ruff]
 line-length = 100

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.schemas.ai import (
     AIRequest,
@@ -54,12 +54,27 @@ def _obtener_contexto_financiero(user_id: str, repos: RepositoryFactory) -> dict
     }
 
 
-@router.post("/chat", response_model=AIResponse)
+@router.post(
+    "/chat",
+    response_model=AIResponse,
+    summary="Chat con asistente IA",
+    response_description="Respuesta del asistente con metadatos",
+)
 def chat_with_ai(
     data: AIRequest,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Envía una pregunta al asistente IA y recibe una respuesta contextualizada.
+
+    Flujo RAG:
+    1. Se busca contexto relevante en ChromaDB (transacciones similares)
+    2. Se construye un prompt con el contexto financiero del usuario
+    3. Se envía al provider IA configurado (Ollama → HuggingFace → Gemini)
+    4. Si ningún provider está disponible, usa reglas locales
+
+    El mensaje se guarda en el historial de conversación automáticamente.
+    """
     user_id = current_user["id"]
 
     chat_memory = ChatMemoryService(repos.chats)
@@ -85,31 +100,64 @@ def chat_with_ai(
     )
 
 
-@router.get("/history", response_model=list[ChatMessageResponse])
+@router.get(
+    "/history",
+    response_model=list[ChatMessageResponse],
+    summary="Historial de conversación",
+    response_description="Mensajes del chat",
+)
 def get_chat_history(
-    limit: int = 20,
+    limit: int = Query(20, ge=1, le=100, description="Cantidad máxima de mensajes (1-100)"),
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Retorna el historial de conversación del usuario.
+
+    Retorna los últimos N mensajes (default: 20, máximo: 100).
+    Incluye mensajes del usuario y del asistente con metadatos
+    (provider usado, tokens consumidos, timestamp).
+    """
     chat_memory = ChatMemoryService(repos.chats)
     messages = chat_memory.cargar_historial(current_user["id"], limit=limit)
     return messages
 
 
-@router.delete("/history", status_code=204)
+@router.delete(
+    "/history",
+    status_code=204,
+    summary="Limpiar historial de chat",
+)
 def clear_chat_history(
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Elimina todo el historial de conversación del usuario.
+
+    Esta acción es irreversible. Los mensajes se eliminan
+    permanentemente de la base de datos.
+    """
     chat_memory = ChatMemoryService(repos.chats)
     chat_memory.limpiar_historial(current_user["id"])
 
 
-@router.get("/insights", response_model=InsightResponse)
+@router.get(
+    "/insights",
+    response_model=InsightResponse,
+    summary="Análisis predictivo financiero",
+    response_description="Insights, predicciones y anomalías",
+)
 def get_insights(
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Genera análisis predictivo basado en el histórico de transacciones.
+
+    Incluye:
+    - **Tendencias**: dirección del gasto por categoría (↑ sube, ↓ baja, → estable)
+    - **Predicción**: gasto mensual estimado con nivel de confianza
+    - **Anomalías**: gastos inusuales detectados con z-score (>2 desviaciones)
+    - **Insights**: resumen en lenguaje natural con recomendaciones
+    """
     user_id = current_user["id"]
     txns = repos.transactions.get_all({"user_id": user_id})
 
@@ -131,11 +179,21 @@ def get_insights(
     )
 
 
-@router.get("/suggestions")
+@router.get(
+    "/suggestions",
+    summary="Preguntas sugeridas",
+    response_description="Lista de preguntas recomendadas",
+)
 def get_suggestions(
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Retorna preguntas sugeridas basadas en los datos del usuario.
+
+    Las sugerencias se personalizan según las categorías de gasto
+    y el estado de presupuestos y metas del usuario.
+    Retorna un máximo de 6 sugerencias.
+    """
     user_id = current_user["id"]
     txns = repos.transactions.get_all({"user_id": user_id})
 
@@ -157,8 +215,20 @@ def get_suggestions(
     return {"suggestions": suggestions[:6]}
 
 
-@router.get("/status", response_model=AIStatusResponse)
+@router.get(
+    "/status",
+    response_model=AIStatusResponse,
+    summary="Estado del sistema IA",
+    response_description="Disponibilidad de providers y ChromaDB",
+)
 def get_ai_status():
+    """Retorna el estado actual de los providers de IA y ChromaDB.
+
+    Útil para diagnosticar:
+    - Qué providers están disponibles (Ollama, HuggingFace, Gemini)
+    - Cuál está activo (primero disponible en la cadena de fallback)
+    - Si ChromaDB está operativo para búsqueda semántica
+    """
     factory = ProviderFactory()
     providers = [
         ProviderStatus(name=p.name, available=p.is_available())
@@ -185,23 +255,48 @@ def get_ai_status():
     )
 
 
-@router.get("/settings", response_model=AIProviderSettingsResponse)
+@router.get(
+    "/settings",
+    response_model=AIProviderSettingsResponse,
+    summary="Obtener configuración IA del usuario",
+    response_description="Configuración actual de providers",
+)
 def get_ai_settings(
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Retorna la configuración de providers IA del usuario.
+
+    Incluye: prioridad de providers, URLs, modelos, API keys,
+    parámetros de generación (max_tokens, temperature, context_window)
+    y modelo de embeddings.
+
+    Si no existe configuración, retorna los valores por defecto.
+    """
     config = repos.ai_config.get_by_user(current_user["id"])
     if not config:
         config = repos.ai_config.upsert(current_user["id"], {})
     return AIProviderSettingsResponse(**config)
 
 
-@router.put("/settings", response_model=AIProviderSettingsResponse)
+@router.put(
+    "/settings",
+    response_model=AIProviderSettingsResponse,
+    summary="Actualizar configuración IA del usuario",
+    response_description="Configuración actualizada",
+)
 def update_ai_settings(
     data: AIProviderSettingsRequest,
     current_user: dict = Depends(get_current_user),
     repos: RepositoryFactory = Depends(get_repositories),
 ):
+    """Actualiza la configuración de providers IA del usuario.
+
+    Solo se actualizan los campos enviados (PATCH paracial).
+    Los campos no enviados mantienen su valor actual.
+
+    Permite configurar desde la UI sin tocar variables de entorno.
+    """
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     config = repos.ai_config.upsert(current_user["id"], update_data)
     return AIProviderSettingsResponse(**config)

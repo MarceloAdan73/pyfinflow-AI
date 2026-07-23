@@ -1472,3 +1472,122 @@ frontend/src/app/[locale]/settings/page.tsx       → Settings localizado + sele
 - `npm run build`: 10/10 rutas bajo `[locale]` compilan correctamente
 
 ---
+
+### 22/07/2026 - Session: API docs + Seed data + Tests
+
+**Objetivo:** Preparar el repo para demo profesional: documentación Swagger, datos demo, cobertura de tests.
+
+---
+
+#### 1. API Docs Profesional (28 endpoints + 28 schemas)
+
+**Archivos modificados:**
+```
+app/api/main.py              → openapi_tags (6 grupos), contact, license_info, servers, descripción markdown
+app/api/routers/auth.py      → 5 endpoints: summary, docstring, response_description, Query descriptions
+app/api/routers/transactions.py → 5 endpoints: summary, docstring, Query descriptions
+app/api/routers/budgets.py   → 2 endpoints: summary, docstring, Query descriptions
+app/api/routers/goals.py     → 4 endpoints: summary, docstring, response_description
+app/api/routers/ai.py        → 8 endpoints: summary, docstring, response_description, Query descriptions
+app/api/schemas/auth.py      → 7 schemas: class description, field descriptions, field examples
+app/api/schemas/transaction.py → 4 schemas: class description, field descriptions, field examples
+app/api/schemas/budget.py    → 3 schemas: class description, field descriptions, field examples
+app/api/schemas/goal.py      → 3 schemas: class description, field descriptions, field examples
+app/api/schemas/ai.py        → 11 schemas: class descriptions, field descriptions, field examples
+```
+
+**Antes vs Después:**
+| Métrica | Antes | Después |
+|---|---|---|
+| Endpoints con docstring | 0/28 | 28/28 |
+| Endpoints con summary | 0/28 | 28/28 |
+| Schemas con class description | 0/28 | 28/28 |
+| Schemas con field examples | 11/28 (39%) | 28/28 (100%) |
+| Schemas con field descriptions | 7/28 (25%) | 28/28 (100%) |
+| openapi_tags | No | 6 grupos con descripciones |
+| contact/license | No | Configurados |
+
+**Swagger UI:** `http://localhost:8000/docs` — ahora muestra documentación completa con tags agrupados, descripciones, y ejemplos en cada endpoint y schema.
+
+---
+
+#### 2. Seed Script
+
+**Archivo creado:**
+```
+scripts/seed_demo.py          → Script standalone para poblar datos demo
+```
+
+**Datos que crea:**
+| Entidad | Cantidad | Detalle |
+|---|---|---|
+| Users | 2 | admin (ADMIN) + demo (USER), contraseña: demo123 |
+| Transactions | ~70 | 6 meses, ambos tipos, todas las categorías, montos realistas ARS |
+| Budgets | 14 | 7 categorías × 2 meses (anterior + actual) |
+| Goals | 3 | Vacaciones (25%), Fondo emergencia (70%), Notebook (91%) |
+| UserConfig | 2 | Moneda ARS por defecto |
+| AIProviderConfig | 2 | Defaults (ollama local) |
+
+**Uso:**
+```bash
+python scripts/seed_demo.py
+# Luego: POST /auth/login → {"username": "demo", "password": "demo123"}
+```
+
+**Características:**
+- Idempotente: limpia datos existentes antes de insertar
+- Usa SQLAlchemy directamente (sin dependency de FastAPI)
+- Basado en constantes de `app/core/constants.py`
+- Printea resumen al final
+
+---
+
+#### 3. Tests — 175 pasando (antes: 114)
+
+**Archivos creados:**
+```
+tests/unit/conftest.py           → Fixtures compartidos: db_session, client, auth_header, budget_auth_header, goal_auth_header
+tests/unit/test_formatters.py    → 22 tests: generar_id, formatear_monto, _parsear_numero, detectar_moneda
+tests/unit/test_vector_store.py  → 14 tests: ChromaDB (_get_client, indexar, buscar, eliminar, _txn_to_text)
+tests/unit/test_rag_engine.py    → 5 tests: RAG (_build_messages, consultar con mocks)
+tests/unit/test_alerts.py        → 5 tests: SMTP (send_alert_email, alert_critical_error, alert_rate_limit_hit)
+tests/unit/test_config.py        → 11 tests: Settings (tipos, defaults, engine_options)
+```
+
+**Cobertura por módulo:**
+| Módulo | Antes | Después | Tests |
+|---|---|---|---|
+| `app/utils/formatters.py` | 0% | ~90% | 22 tests (formateo, parsing, detección moneda) |
+| `app/ai/vector_store.py` | 0% | ~85% | 14 tests (client, index, search, delete, error handling) |
+| `app/ai/rag_engine.py` | 0% (solo API mock) | ~80% | 5 tests (build_messages, consultar mocked) |
+| `app/core/alerts.py` | 0% | ~90% | 5 tests (SMTP mock, critical error, rate limit) |
+| `app/core/config.py` | 0% | ~70% | 11 tests (types, defaults, engine options) |
+
+**Structural improvements:**
+- `conftest.py`: fixtures de `db_session`, `client` y `auth_header` extraídos de test_api.py y test_ai_api.py (eliminación de duplicación)
+- `pyproject.toml`: markers configurados (`unit`, `integration`, `slow`)
+
+**Resumen de tests:**
+| Archivo | Tests | Estado |
+|---|---|---|
+| test_ai.py | 30 | ✅ |
+| test_ai_api.py | 10 | ✅ |
+| test_api.py | 30 | ✅ |
+| test_auth.py | 18 | ✅ |
+| test_cache.py | 7 | ✅ |
+| test_config.py | 11 | ✅ (nuevo) |
+| test_formatters.py | 22 | ✅ (nuevo) |
+| test_metrics.py | 6 | ✅ |
+| test_rag_engine.py | 5 | ✅ (nuevo) |
+| test_repositories.py | 13 | ✅ |
+| test_vector_store.py | 14 | ✅ (nuevo) |
+| test_alerts.py | 5 | ✅ (nuevo) |
+| **TOTAL** | **175** | **✅ Todos pasan** |
+
+---
+
+**Verificación:**
+- `pytest tests/ -v`: 175/175 passed
+- `npm run lint`: 0 errors (frontend sin cambios)
+
+---
