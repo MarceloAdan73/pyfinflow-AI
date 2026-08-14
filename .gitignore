@@ -58,3 +58,6 @@ logs/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+
+# Config local de opencode (agente + plan del proyecto - NO se pushea)
+.opencode/

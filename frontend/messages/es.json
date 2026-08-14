@@ -79,7 +79,7 @@
   },
   "transactions": {
     "title": "Transacciones",
-    "description": "Gestioná tus ingresos y gastos",
+    "description": "Descripción (opcional)",
     "new": "Nueva",
     "searchPlaceholder": "Buscar por descripción o categoría...",
     "filterAll": "Todos",
@@ -96,7 +96,6 @@
     "amount": "Monto",
     "category": "Categoría",
     "date": "Fecha",
-    "description": "Descripción (opcional)",
     "descriptionPlaceholder": "Descripción breve",
     "deleteTitle": "Eliminar transacción",
     "deleteDescription": "¿Estás seguro de que querés eliminar esta transacción? Esta acción no se puede deshacer."
@@ -199,7 +198,8 @@
   },
   "notFound": {
     "title": "Página no encontrada",
-    "description": "La página que buscás no existe o fue movida. Volvé al dashboard para continuar."
+    "description": "La página que buscás no existe o fue movida. Volvé al dashboard para continuar.",
+    "back": "Volver"
   },
   "categories": {
     "alimentacion": "Alimentación",

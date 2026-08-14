@@ -16,7 +16,17 @@ La contraseña de ambos usuarios es: demo123
 
 import uuid
 import random
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 from app.core.database import engine, init_db, get_db_session
 from app.core.models_db import (
@@ -25,7 +35,9 @@ from app.core.models_db import (
     Transaction,
     Budget,
     Goal,
+    CustomCategory,
     UserConfig,
+    ChatMessage,
     AIProviderConfig,
 )
 from app.core.auth import hash_password
@@ -313,11 +325,13 @@ def main():
     with get_db_session() as session:
         # Limpiar datos existentes
         print("2. Limpiando datos existentes...")
+        session.query(ChatMessage).delete()
         session.query(AIProviderConfig).delete()
         session.query(UserConfig).delete()
         session.query(Goal).delete()
         session.query(Budget).delete()
         session.query(Transaction).delete()
+        session.query(CustomCategory).delete()
         session.query(User).delete()
         session.commit()
         print("  Datos eliminados.")

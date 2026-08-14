@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -17,18 +17,12 @@ import {
   LogOut,
 } from "lucide-react";
 
-function getLocale(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments[0] || "es";
-}
-
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const locale = getLocale(pathname);
+  const locale = useLocale();
   const { doLogout } = useAuth();
   const t = useTranslations("nav");
-  const tCommon = useTranslations("common");
 
   const navItems = [
     { href: `/${locale}/dashboard`, label: t("dashboard"), icon: LayoutDashboard },
@@ -85,7 +79,7 @@ export function Navbar() {
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
             >
               <LogOut className="h-4 w-4" />
-              {tCommon("logout")}
+              {t("logout")}
             </button>
           </div>
         </div>

@@ -1,12 +1,8 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
-
-function getLocale(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments[0] || "es";
-}
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 interface ShortcutMap {
   [key: string]: () => void;
@@ -14,8 +10,7 @@ interface ShortcutMap {
 
 export function useKeyboardShortcuts(shortcuts?: ShortcutMap) {
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = getLocale(pathname);
+  const locale = useLocale();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {

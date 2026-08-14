@@ -111,7 +111,7 @@ class AIProviderSettingsRequest(BaseModel):
 
     provider_priority: Optional[str] = Field(None, examples=["ollama,huggingface,gemini"], description="Orden de prioridad de providers")
     ollama_url: Optional[str] = Field(None, examples=["http://localhost:11434"], description="URL del servidor Ollama")
-    ollama_model: Optional[str] = Field(None, examples=["qwen2.5-coder:7b"], description="Modelo de Ollama")
+    ollama_model: Optional[str] = Field(None, examples=["qwen3.5:9b"], description="Modelo de Ollama")
     hf_token: Optional[str] = Field(None, examples=["hf_xxx"], description="Token de HuggingFace")
     hf_model: Optional[str] = Field(None, examples=["HuggingFaceH4/zephyr-7b-beta"], description="Modelo de HuggingFace")
     gemini_api_key: Optional[str] = Field(None, examples=["AIza..."], description="API key de Google Gemini")
@@ -127,7 +127,7 @@ class AIProviderSettingsResponse(BaseModel):
 
     provider_priority: str = Field(..., examples=["ollama,huggingface,gemini"], description="Orden de prioridad")
     ollama_url: str = Field(..., examples=["http://localhost:11434"], description="URL de Ollama")
-    ollama_model: str = Field(..., examples=["qwen2.5-coder:7b"], description="Modelo de Ollama")
+    ollama_model: str = Field(..., examples=["qwen3.5:9b"], description="Modelo de Ollama")
     hf_token: str = Field(..., examples=["hf_xxx"], description="Token de HuggingFace (oculto en UI)")
     hf_model: str = Field(..., examples=["HuggingFaceH4/zephyr-7b-beta"], description="Modelo de HuggingFace")
     gemini_api_key: str = Field(..., examples=["AIza..."], description="API key de Gemini (oculta en UI)")

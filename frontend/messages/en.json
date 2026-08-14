@@ -79,7 +79,7 @@
   },
   "transactions": {
     "title": "Transactions",
-    "description": "Manage your income and expenses",
+    "description": "Description (optional)",
     "new": "New",
     "searchPlaceholder": "Search by description or category...",
     "filterAll": "All",
@@ -96,7 +96,6 @@
     "amount": "Amount",
     "category": "Category",
     "date": "Date",
-    "description": "Description (optional)",
     "descriptionPlaceholder": "Brief description",
     "deleteTitle": "Delete transaction",
     "deleteDescription": "Are you sure you want to delete this transaction? This action cannot be undone."
@@ -199,7 +198,8 @@
   },
   "notFound": {
     "title": "Page not found",
-    "description": "The page you're looking for doesn't exist or has been moved. Go back to the dashboard."
+    "description": "The page you're looking for doesn't exist or has been moved. Go back to the dashboard.",
+    "back": "Back"
   },
   "categories": {
     "alimentacion": "Food",

@@ -32,21 +32,21 @@
 
 | Aspecto | Estado actual |
 |---|---|
-| **App** | Streamlit monolito (~2972 líneas) + API REST FastAPI |
-| **Frontend** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 |
+| **App** | API REST FastAPI (frontend Streamlit legacy deprecado) |
+| **Frontend** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 + next-intl (es/en) |
 | **Backend** | FastAPI + SQLAlchemy + Repository Pattern + Alembic |
-| **DB** | PostgreSQL (producción) + SQLite (desarrollo/tests) |
+| **DB** | PostgreSQL (producción) + SQLite (desarrollo/tests) — local usa `pystreamflow_dev.db` |
 | **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo + configuración per-user desde UI |
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
-| **API** | 25 endpoints REST: /auth, /transactions, /budgets, /goals, /ai, /health |
-| **Tests** | 113 tests backend (todos pasan) + 10/10 rutas frontend compilan |
+| **API** | 28 endpoints REST documentados: /auth, /transactions, /budgets, /goals, /ai, /health |
+| **Tests** | 175 tests backend (todos pasan) + frontend: lint 0 errors + build 21/21 páginas SSG |
 | **CI/CD** | GitHub Actions (Python 3.12, PostgreSQL service, ruff, pytest-cov) |
 | **Docker** | Dockerfile multi-stage + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
 | **Monitoring** | structlog + request logging middleware + health check + métricas + alertas SMTP |
-| **Deploy actual** | Streamlit Cloud |
+| **Deploy actual** | Local (dev) — backend :8000, frontend :3000 |
 | **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
-| **Branch** | `master` (producción), `dev` (desarrollo) |
-| **Último commit dev** | 21/07/2026 (Fase 7 completa - i18n + Multi-moneda) |
+| **Branch** | `main` (producción), `dev` (desarrollo) — se trabaja siempre en `dev` |
+| **Último commit dev** | 14/08/2026 (fix i18n es/en + arranque local frontend) |
 | **Cache** | Redis con fallback a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
 
 ### Decisiones técnicas clave (contexto)
@@ -697,23 +697,22 @@ frontend/
 **Tiempo estimado:** 2-3 días
 
 ### 7.1 i18n
-- [ ] Instalar `next-intl` o `next-i18next` para Next.js
-- [ ] Crear archivos de traducción:
+- [x] Instalar `next-intl` para Next.js
+- [x] Crear archivos de traducción (es/en; pt removido en 14/08/2026)
   ```
-  locales/
-  ├── es_AR.json
-  ├── en_US.json
-  └── pt_BR.json
+  messages/
+  ├── es.json  → Español (default, sin prefijo en URL)
+  └── en.json  → English (prefijo /en)
   ```
-- [ ] Extraer todos los strings hardcodeados
-- [ ] Reemplazar por funciones de traducción
-- [ ] Selector de idioma en navbar/header
+- [x] Extraer todos los strings hardcodeados
+- [x] Reemplazar por funciones de traducción
+- [x] Selector de idioma en navbar/header
 
 ### 7.2 Multi-moneda
-- [ ] Soportar USD, EUR, BRL además de ARS
-- [ ] API de tasas de cambio (exchangerate-api.com)
-- [ ] Guardar transacciones en moneda original
-- [ ] Mostrar conversiones en dashboard
+- [x] Soportar USD, EUR, BRL además de ARS
+- [x] API de tasas de cambio (open.er-api.com, cache 1h en localStorage)
+- [x] Guardar transacciones en moneda original
+- [x] Mostrar conversiones en dashboard
 
 **Criterio de aceptación:** App funciona en español e inglés. Multi-moneda funcional.
 
@@ -839,7 +838,7 @@ frontend/
 ## PROGRESO GENERAL
 
 | Fase | Estado | Progreso |
-|---|---|---|---|
+|---|---|---|
 | Fase 0: Limpieza | ✅ Completada | 100% |
 | Fase 1: Seguridad | ✅ Completada | 100% |
 | Fase 2: PostgreSQL | ✅ Completada | 100% |
@@ -847,12 +846,14 @@ frontend/
 | Fase 4: DevOps | ✅ Completada | 100% |
 | Fase 5: IA Profesional | ✅ Completada | 100% |
 | Fase 6: Frontend | ✅ Completada | 100% |
-| Fase 7: i18n | ⬜ No iniciada | 0% |
+| Fase 7: i18n | ✅ Completada | 100% |
 | Fase 8: Features | ⬜ No iniciada | 0% |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: ~68%** (Fases 0-6 completadas + polish IA/UI)
+**Progreso total: ~78%** (Fases 0-7 completadas)
+
+> **Próximo paso (Fase 8 + polish):** darle funcionalidad real al modo dark/light y revisar que todo funcione en el frontend.
 
 ---
 
@@ -1054,22 +1055,39 @@ uvicorn app.api.main:app --reload --port 8000
 
 ### Desarrollo
 ```bash
-# Activar entorno
-conda activate pystreamflow  # o venv
-
-# Ejecutar app
-streamlit run app/main.py
-
-# Ejecutar API
+# Backend API (http://localhost:8000, Swagger en /docs)
 uvicorn app.api.main:app --reload --port 8000
+
+# Frontend Next.js (http://localhost:3000)
+cd frontend && npm run dev
+
+# Seed de datos demo (admin/demo, password: demo123)
+python scripts/seed_demo.py
+
+# Streamlit legacy (deprecado)
+streamlit run app/main.py
 
 # Docker
 docker-compose up -d
 ```
 
+### Frontend
+```bash
+cd frontend
+
+# Lint
+npm run lint
+
+# Build de producción
+npm run build
+
+# Dev server
+npm run dev
+```
+
 ### Testing
 ```bash
-# Todos los tests
+# Todos los tests backend
 pytest tests/ -v
 
 # Solo unitarios
@@ -1110,7 +1128,7 @@ git push origin main
 ---
 
 *Documento creado el 18/07/2026 para PyStreamFlow-AI.*
-*Última actualización: 20/07/2026 (Fase 6 completada).*
+*Última actualización: 14/08/2026 (Fase 7 completada + fixes arranque local).*
 
 ### 19/07/2026 - Decisión: Frontend Next.js (reemplaza plan Streamlit)
 
@@ -1589,5 +1607,59 @@ tests/unit/test_config.py        → 11 tests: Settings (tipos, defaults, engine
 **Verificación:**
 - `pytest tests/ -v`: 175/175 passed
 - `npm run lint`: 0 errors (frontend sin cambios)
+
+---
+
+### 14/08/2026 - Session: Arranque local frontend + fix i18n es/en
+
+**Objetivo:** Poner a correr el frontend Next.js en local y dejar la i18n en español/inglés. Se encontraron y corrigieron errores de arranque del frontend.
+
+**Problema raíz:** el proyecto venía de Next.js 14 + `next-intl` sin plugin, pero la versión instalada es **Next.js 16.2.10 (Turbopack) + next-intl v4**. Cambios de convención que rompían todo:
+
+1. **`middleware.ts` en raíz era ignorado** — Next 16 exige `src/proxy.ts` (convención nueva; `middleware` deprecado). Se movió de `frontend/middleware.ts` → `frontend/src/proxy.ts`.
+2. **Faltaba el plugin de next-intl** — `next.config.ts` ahora usa `createNextIntlPlugin("./src/i18n/request.ts")` (next-intl v4 lo requiere explícitamente).
+3. **Root layout roto** — `frontend/src/app/layout.tsx` devolvía `children` sin `<html>/<body>`. Eliminado; `[locale]/layout.tsx` es ahora el root layout (server component async con `setRequestLocale` + `NextIntlClientProvider`).
+4. **`providers.tsx` roto** — usaba `useLocale()` fuera del provider → "No intl context found". Eliminado.
+5. **Ruta de messages incorrecta** — `src/i18n/request.ts` importaba `../messages/` pero los archivos están en `frontend/messages/`. Corregido a `../../messages/${locale}.json`.
+
+**Bug crítico de navegación (404 en sidebar):** `getLocale(pathname)` asumía que el primer segmento de la URL era el locale. Con `localePrefix: "as-needed"` el español (default) **no lleva prefijo**, así que en `/dashboard` el primer segmento era `"dashboard"` → los links del sidebar quedaban `/dashboard/dashboard` → 404. Además `/login` no se reconocía como ruta pública en el AuthGuard.
+
+**Fix:** reemplazado el parseo manual por `useLocale()` de next-intl (que conoce el idioma real) en 10 archivos:
+```
+frontend/src/components/layout/sidebar.tsx, navbar.tsx, auth-guard.tsx
+frontend/src/app/[locale]/page.tsx, login/page.tsx, register/page.tsx, not-found.tsx
+frontend/src/components/dashboard/recent-transactions.tsx
+frontend/src/hooks/use-auth.ts, use-keyboard-shortcuts.ts
+frontend/src/components/ui/language-selector.tsx  → + quita prefijo es al cambiar idioma
+```
+`auth-guard.tsx` ahora detecta rutas públicas sin prefijo (`/login`, `/register`) y calcula `pathWithoutLocale` solo si el primer segmento es un locale válido.
+
+**i18n limitada a es/en (solicitado por Marcelo):**
+```
+frontend/src/i18n/config.ts  → locales ["es", "en"] (default: es)
+frontend/messages/pt.json    → eliminado
+```
+Monedas (ARS/USD/EUR/BRL) sin cambios.
+
+**Seed script corregido para Windows:**
+```
+scripts/seed_demo.py  → sys.path a raíz del repo, delete de ChatMessage/CustomCategory (FK),
+                       reconfigure utf-8 en stdout/stderr (evita UnicodeDecodeError)
+```
+
+**Backend:** modelo Ollama actualizado a `qwen3.5:9b` en `app/core/config.py`, `app/core/models_db.py` y `app/api/schemas/ai.py`.
+
+**Verificación (todo en local):**
+- `npm run lint`: 0 errors, 0 warnings
+- `npm run build`: 21/21 páginas SSG (`/es/*`, `/en/*`, `/_not-found`)
+- Rutas `/`, `/dashboard`, `/transactions`, `/budgets`, `/goals`, `/chat`, `/settings`, `/en/*` → 200
+- `/es/*` → 307 redirect a versión sin prefijo; `/pt/*` → 404
+- DB seed: `pystreamflow_dev.db` con admin/demo (`demo123`), 190 transacciones, 28 presupuestos, 6 metas
+- Navegación por sidebar validada en el navegador ✅
+
+**Pendiente (próxima sesión):**
+- [ ] Dar funcionalidad real al modo dark/light (hoy el toggle persiste pero falta revisar variables CSS/contraste)
+- [ ] Revisar que todo funcione: chat IA, conversión de moneda, gráficos
+- [ ] Tests frontend (Playwright/Vitest)
 
 ---

@@ -1,18 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/auth";
-
-function getLocale(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments[0] || "es";
-}
+import { useLocale } from "next-intl";
 
 export default function Home() {
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = getLocale(pathname);
+  const locale = useLocale();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {

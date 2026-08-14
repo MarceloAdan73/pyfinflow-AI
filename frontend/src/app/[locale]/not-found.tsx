@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/ui/motion";
 import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   const t = useTranslations("notFound");
+  const tNav = useTranslations("nav");
+  const locale = useLocale();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -26,9 +28,9 @@ export default function NotFound() {
             <Button variant="outline" onClick={() => window.history.back()} className="gap-2">
               <ArrowLeft className="h-4 w-4" /> {t("back")}
             </Button>
-            <Link href="/dashboard">
+            <Link href={`/${locale}/dashboard`}>
               <Button className="gap-2">
-                <Home className="h-4 w-4" /> Dashboard
+                <Home className="h-4 w-4" /> {tNav("dashboard")}
               </Button>
             </Link>
           </div>

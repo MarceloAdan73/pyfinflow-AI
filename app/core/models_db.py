@@ -133,7 +133,7 @@ class AIProviderConfig(Base):
     user_id = Column(String, ForeignKey("users.id"), primary_key=True)
     provider_priority = Column(String(200), default="ollama,huggingface,gemini")
     ollama_url = Column(String(255), default="http://localhost:11434")
-    ollama_model = Column(String(100), default="qwen2.5-coder:7b")
+    ollama_model = Column(String(100), default="qwen3.5:9b")
     hf_token = Column(String(255), default="")
     hf_model = Column(String(100), default="HuggingFaceH4/zephyr-7b-beta")
     gemini_api_key = Column(String(255), default="")

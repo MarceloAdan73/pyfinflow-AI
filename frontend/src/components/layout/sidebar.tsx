@@ -16,19 +16,13 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSelector } from "@/components/ui/language-selector";
-import { useTranslations } from "next-intl";
-
-function getLocale(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments[0] || "es";
-}
+import { useLocale, useTranslations } from "next-intl";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const locale = getLocale(pathname);
+  const locale = useLocale();
   const { user, doLogout } = useAuth();
   const t = useTranslations("nav");
-  const tCommon = useTranslations("common");
 
   const navItems = [
     { href: `/${locale}/dashboard`, label: t("dashboard"), icon: LayoutDashboard },
@@ -95,7 +89,7 @@ export function Sidebar() {
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
           >
             <LogOut className="h-4 w-4" />
-            {tCommon("logout")}
+            {t("logout")}
           </button>
         </div>
       </div>

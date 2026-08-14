@@ -30,7 +30,7 @@ class Settings:
 
     # AI Settings
     OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
-    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen3.5:9b")
     HF_TOKEN: str = os.getenv("HF_TOKEN", "")
     HF_MODEL: str = os.getenv("HF_MODEL", "HuggingFaceH4/zephyr-7b-beta")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

@@ -4,16 +4,21 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { formatMoney, formatDate } from "@/lib/utils";
+import { formatMoney, formatDate, type CurrencyCode } from "@/lib/utils";
 import type { Transaction } from "@/types";
 import { ArrowRight } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 interface Props {
   transactions: Transaction[];
   isLoading: boolean;
+  currency: CurrencyCode;
 }
 
-export function RecentTransactions({ transactions, isLoading }: Props) {
+export function RecentTransactions({ transactions, isLoading, currency }: Props) {
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
+
   if (isLoading) {
     return (
       <Card>
@@ -32,17 +37,17 @@ export function RecentTransactions({ transactions, isLoading }: Props) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Últimas Transacciones</CardTitle>
-        <Link href="/transactions">
+        <CardTitle className="text-base">{t("recentTransactions")}</CardTitle>
+        <Link href={`/${locale}/transactions`}>
           <Button variant="ghost" size="sm" className="gap-1 text-xs">
-            Ver todas <ArrowRight className="h-3 w-3" />
+            {t("viewAll")} <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
       </CardHeader>
       <CardContent>
         {transactions.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-4">
-            No hay transacciones registradas
+            {t("noTransactions")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -74,7 +79,7 @@ export function RecentTransactions({ transactions, isLoading }: Props) {
                   }`}
                 >
                   {txn.tipo === "Ingreso" ? "+" : "-"}
-                  {formatMoney(txn.monto)}
+                  {formatMoney(txn.monto, currency)}
                 </span>
               </div>
             ))}

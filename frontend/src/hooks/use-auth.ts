@@ -1,21 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuthStore } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { User } from "@/types";
 
-function getLocale(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments[0] || "es";
-}
-
 export function useAuth() {
   const { user, tokens, isAuthenticated, login, setUser, logout } = useAuthStore();
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = getLocale(pathname);
+  const locale = useLocale();
 
   useEffect(() => {
     if (isAuthenticated && !user && tokens?.access_token) {

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import { locales, localeNames, type Locale } from "@/i18n/config";
+import { locales, localeNames, defaultLocale, type Locale } from "@/i18n/config";
 import { Select } from "@/components/ui/select";
 import { Globe } from "lucide-react";
 
@@ -13,7 +13,9 @@ export function LanguageSelector() {
 
   const handleChange = (newLocale: string) => {
     const segments = pathname.split("/").filter(Boolean);
-    segments[0] = newLocale;
+    const hasPrefix = locales.includes(segments[0] as Locale);
+    if (hasPrefix) segments.shift();
+    if (newLocale !== defaultLocale) segments.unshift(newLocale);
     router.push("/" + segments.join("/"));
   };
 
