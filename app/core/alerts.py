@@ -55,3 +55,50 @@ def alert_rate_limit_hit(ip: str, path: str):
     subject = "Rate Limit Hit"
     body = f"IP: {ip}\nPath: {path}\n"
     send_alert_email(subject, body)
+
+
+def alert_budget_exceeded(
+    categoria: str,
+    limite: float,
+    gastado: float,
+    porcentaje: float,
+    mes: str,
+    to_email: Optional[str] = None,
+) -> bool:
+    """Envía email cuando un presupuesto supera el límite.
+
+    No-bloqueante: retorna False si SMTP no configurado o falla.
+    """
+    subject = f"Presupuesto excedido: {categoria} ({mes})"
+    body = (
+        f"Alerta de presupuesto PyStreamFlow\n\n"
+        f"Categoría: {categoria}\n"
+        f"Período: {mes}\n"
+        f"Límite: ${limite:,.2f}\n"
+        f"Gastado: ${gastado:,.2f}\n"
+        f"Porcentaje: {porcentaje:.1f}%\n\n"
+        f"Has superado el límite configurado para esta categoría."
+    )
+    return send_alert_email(subject, body, to_email=to_email)
+
+
+def alert_budget_warning(
+    categoria: str,
+    limite: float,
+    gastado: float,
+    porcentaje: float,
+    mes: str,
+    to_email: Optional[str] = None,
+) -> bool:
+    """Email de advertencia cuando se supera el 80% del presupuesto."""
+    subject = f"Alerta presupuesto: {categoria} al {porcentaje:.0f}% ({mes})"
+    body = (
+        f"Alerta de presupuesto PyStreamFlow\n\n"
+        f"Categoría: {categoria}\n"
+        f"Período: {mes}\n"
+        f"Límite: ${limite:,.2f}\n"
+        f"Gastado: ${gastado:,.2f}\n"
+        f"Porcentaje: {porcentaje:.1f}%\n\n"
+        f"Estás cerca de superar el límite."
+    )
+    return send_alert_email(subject, body, to_email=to_email)

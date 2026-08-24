@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import get_current_user, get_repositories
-from app.api.schemas.budget import BudgetCreate, BudgetResponse
+from app.api.schemas.budget import BudgetAlert, BudgetCreate, BudgetResponse
 from app.repositories.factory import RepositoryFactory
+from app.services.budget_alerts import get_budget_alerts_for_user
 
 router = APIRouter(prefix="/budgets", tags=["Presupuestos"])
 
@@ -29,6 +30,31 @@ def list_budgets(
     Cada presupuesto incluye categoría, límite y porcentaje de uso.
     """
     return repos.budgets.get_all({"user_id": current_user["id"], "mes": mes})
+
+
+@router.get(
+    "/alerts",
+    response_model=list[BudgetAlert],
+    summary="Alertas de presupuestos excedidos o en riesgo",
+    response_description="Lista de categorías con gasto >=80% del límite",
+)
+def list_budget_alerts(
+    mes: str = Query(
+        ...,
+        pattern=r"^\d{4}-\d{2}$",
+        description="Período YYYY-MM a evaluar",
+        examples=["2026-07"],
+    ),
+    current_user: dict = Depends(get_current_user),
+    repos: RepositoryFactory = Depends(get_repositories),
+):
+    """Retorna alertas de presupuesto para el mes indicado.
+
+    - Calcula gasto real por categoría (solo `Gasto`) en el rango del mes.
+    - Incluye solo categorías con uso >=80% (warning) y marca `excedido` si >=100%.
+    - Ordenado por porcentaje descendente (más crítico primero).
+    """
+    return get_budget_alerts_for_user(repos, current_user["id"], mes)
 
 
 @router.post(

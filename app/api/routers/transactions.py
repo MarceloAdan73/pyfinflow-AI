@@ -79,6 +79,29 @@ def create_transaction(
         "fecha": data.fecha,
         "moneda": data.moneda,
     })
+    # F8.1a: chequeo no-bloqueante de presupuesto (solo Gastos)
+    if data.tipo == "Gasto":
+        try:
+            from app.core.alerts import alert_budget_exceeded, alert_budget_warning
+            from app.services.budget_alerts import get_budget_alerts_for_user
+
+            mes = data.fecha[:7]  # YYYY-MM
+            alerts = get_budget_alerts_for_user(repos, current_user["id"], mes)
+            for a in alerts:
+                if a["categoria"] != data.categoria:
+                    continue
+                if a["excedido"]:
+                    alert_budget_exceeded(
+                        a["categoria"], a["limite"], a["gastado"], a["porcentaje"], mes
+                    )
+                elif a["porcentaje"] >= 80:
+                    alert_budget_warning(
+                        a["categoria"], a["limite"], a["gastado"], a["porcentaje"], mes
+                    )
+                break
+        except Exception:
+            # Nunca romper la creación de transacción por un fallo de alerta
+            pass
     return txn
 
 
