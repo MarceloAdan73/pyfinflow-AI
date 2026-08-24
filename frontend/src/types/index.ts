@@ -54,6 +54,14 @@ export interface BudgetCreate {
   mes: string;
 }
 
+export interface BudgetAlert {
+  categoria: string;
+  limite: number;
+  gastado: number;
+  porcentaje: number;
+  excedido: boolean;
+}
+
 export interface Goal {
   id: string;
   user_id: string;

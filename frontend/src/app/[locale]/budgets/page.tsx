@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
 import { useBudgets } from "@/hooks/use-budgets";
+import { useBudgetAlerts } from "@/hooks/use-budget-alerts";
 import { useTransactions } from "@/hooks/use-transactions";
 import { formatMoney, getCurrentMonth } from "@/lib/utils";
 import type { BudgetCreate } from "@/types";
@@ -33,6 +34,7 @@ export default function BudgetsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { budgets, isLoading: budgetsLoading, createBudget } = useBudgets(mes);
   const { transactions, isLoading: txnsLoading } = useTransactions({ fecha_inicio: `${mes}-01`, fecha_fin: `${mes}-31` });
+  const { alerts } = useBudgetAlerts(mes);
 
   const [form, setForm] = useState<BudgetCreate>({
     categoria: "Alimentación",
@@ -87,6 +89,33 @@ export default function BudgetsPage() {
             </div>
           </StaggerItem>
 
+          {alerts.length > 0 && (
+            <StaggerItem>
+              <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <span className="font-semibold text-sm">
+                      {t("alertTitle", { count: alerts.length })}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {alerts.map((a) => (
+                      <Badge
+                        key={a.categoria}
+                        variant={a.excedido ? "destructive" : "secondary"}
+                        className={a.excedido ? "" : "bg-amber-500 text-white hover:bg-amber-600"}
+                      >
+                        {a.categoria}: {a.porcentaje.toFixed(0)}% ({formatMoney(a.gastado)}/{formatMoney(a.limite)})
+                        {a.excedido ? ` — ${t("exceeded")}` : ` — ${t("warning")}`}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          )}
+
           <StaggerItem>
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -113,9 +142,9 @@ export default function BudgetsPage() {
                     <CardContent className="pt-6 space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold">{b.categoria}</h3>
-                        {b.excedido && (
-                          <Badge variant="destructive" className="gap-1">
-                            <AlertTriangle className="h-3 w-3" /> {t("exceeded")}
+                        {b.porcentaje >= 80 && (
+                          <Badge variant={b.excedido ? "destructive" : "secondary"} className={`gap-1 ${!b.excedido ? "bg-amber-500 text-white hover:bg-amber-600" : ""}`}>
+                            <AlertTriangle className="h-3 w-3" /> {b.excedido ? t("exceeded") : t("warning")}
                           </Badge>
                         )}
                       </div>

@@ -7,13 +7,17 @@ import { MonthlyChart } from "@/components/dashboard/monthly-chart";
 import { CategoryPie } from "@/components/dashboard/category-pie";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { useTransactions } from "@/hooks/use-transactions";
+import { useBudgetAlerts } from "@/hooks/use-budget-alerts";
 import { useCurrency } from "@/lib/use-currency";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "lucide-react";
+import { Calendar, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
+import { getCurrentMonth, formatMoney } from "@/lib/utils";
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
@@ -22,6 +26,8 @@ export default function DashboardPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [displayCurrency] = useCurrency();
+  const currentMonth = getCurrentMonth();
+  const { alerts: budgetAlerts } = useBudgetAlerts(currentMonth);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
@@ -114,6 +120,32 @@ export default function DashboardPage() {
               </div>
             </div>
           </StaggerItem>
+
+          {budgetAlerts.length > 0 && (
+            <StaggerItem>
+              <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <span className="font-semibold text-sm">
+                      {budgetAlerts.length} {budgetAlerts.length === 1 ? "alerta" : "alertas"} de presupuesto — {currentMonth}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {budgetAlerts.map((a) => (
+                      <Badge
+                        key={a.categoria}
+                        variant={a.excedido ? "destructive" : "secondary"}
+                        className={a.excedido ? "" : "bg-amber-500 text-white hover:bg-amber-600"}
+                      >
+                        {a.categoria}: {a.porcentaje.toFixed(0)}% ({formatMoney(a.gastado)}/{formatMoney(a.limite)})
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          )}
 
           <StaggerItem>
             <SummaryCards

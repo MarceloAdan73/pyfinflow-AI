@@ -106,6 +106,8 @@
     "new": "New",
     "empty": "No budgets for {month}",
     "exceeded": "Exceeded",
+    "warning": "At risk",
+    "alertTitle": "{count, plural, one {# budget alert} other {# budget alerts}}",
     "newTitle": "New Budget",
     "category": "Category",
     "limit": "Monthly limit"
