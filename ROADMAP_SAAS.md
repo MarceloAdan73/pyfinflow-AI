@@ -39,7 +39,7 @@
 | **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo + configuración per-user desde UI |
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
 | **API** | 28 endpoints REST documentados: /auth, /transactions, /budgets, /goals, /ai, /health |
-| **Tests** | 175 tests backend (todos pasan) + frontend: lint 0 errors + build 21/21 páginas SSG |
+| **Tests** | 182 tests backend (todos pasan) + frontend: lint 0 errors + build 21/21 páginas SSG. Ruff: 0 errores |
 | **CI/CD** | GitHub Actions (Python 3.12, PostgreSQL service, ruff, pytest-cov) |
 | **Docker** | Dockerfile multi-stage + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
 | **Monitoring** | structlog + request logging middleware + health check + métricas + alertas SMTP |
@@ -367,7 +367,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [x] Test: 401 sin token
 - [x] Test: 403 sin permisos
 - [x] Test: Validación de inputs inválidos
-- [ ] Test: Rate limiting funciona
+- [x] Test: Rate limiting funciona (24/08/2026 — incluye fix de bug: el router login limpiaba el contador en intentos fallidos, anulando el rate limit)
 
 ### 3.9 Documentación
 - [x] Configurar Swagger UI (`/docs`)
@@ -514,7 +514,7 @@ Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero
 - [x] Test: Memoria guarda y carga mensajes
 - [x] Test: API endpoints (chat, history, insights, suggestions, status)
 - [x] Test: Auth (unauthorized) en endpoints IA
-- [ ] Test: Rate limiting en llamadas a IA
+- [x] Test: Rate limiting en llamadas a IA (24/08/2026, incluye implementación del limitador `app/ai/rate_limiter.py` — 10 req/min por usuario en `/ai/chat`)
 
 ### 5.8 API REST para IA
 - [x] Crear `app/api/routers/ai.py` con endpoints:
@@ -855,6 +855,14 @@ frontend/
 **Progreso total: ~78%** (Fases 0-7 completadas)
 
 > **Próximo paso (Fase 8 + polish):** ~~darle funcionalidad real al modo dark/light~~ ✅ hecho 24/08/2026. Sigue: Fase 9 parcial (tests faltantes) → Fase 8.
+>
+> **Sesión 24/08/2026:**
+> - ✅ Fix dark/light mode real (body sin `dark` hardcodeado, themeScript default dark, charts con CSS vars)
+> - ✅ Fix bug rate limiting login (contador se limpiaba en fallos) + tests API (3.8)
+> - ✅ Rate limiting IA implementado (`app/ai/rate_limiter.py`, 10 req/min) + test (5.7)
+> - ✅ Limpieza lint: 77 errores ruff → 0 (imports, dead code `PLACEHOLDERS_DESCRIPCION`, N806 en tests)
+> - ✅ pyproject.toml: migrado `[tool.ruff]` a `[tool.ruff.lint]` (formato actual)
+> - Tests: 175 → 182 | Cobertura backend: ~78%
 
 ---
 

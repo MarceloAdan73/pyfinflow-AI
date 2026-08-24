@@ -1,11 +1,15 @@
 import uuid
-from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from app.core.models_db import (
-    User, Transaction, Budget, Goal, CustomCategory, UserConfig, ChatMessage, AIProviderConfig
+    AIProviderConfig,
+    Budget,
+    ChatMessage,
+    Goal,
+    Transaction,
+    User,
 )
 from app.repositories.base_repo import BaseRepository
 

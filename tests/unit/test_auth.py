@@ -1,22 +1,21 @@
 import time
-import pytest
+
 from app.core.auth import (
-    hash_password,
-    verificar_password,
-    hash_password_sha256,
+    LOGIN_WINDOW,
+    MAX_LOGIN_ATTEMPTS,
+    UserRole,
     crear_access_token,
     crear_refresh_token,
+    esta_bloqueado,
+    hash_password,
+    hash_password_sha256,
+    limpiar_intento,
+    registrar_intento_login,
     verificar_access_token,
+    verificar_password,
     verificar_refresh_token,
     verificar_token,
-    registrar_intento_login,
-    esta_bloqueado,
-    limpiar_intento,
-    UserRole,
-    MAX_LOGIN_ATTEMPTS,
-    LOGIN_WINDOW,
 )
-
 
 # ============================
 # TESTS DE BCRYPT
@@ -102,7 +101,8 @@ def test_token_invalido():
 def test_token_expirado():
     """Simula token expiriendo (con exp en el pasado)"""
     import jwt
-    from app.core.auth import JWT_SECRET, JWT_ALGORITHM
+
+    from app.core.auth import JWT_ALGORITHM, JWT_SECRET
 
     payload = {
         "sub": "user123",
@@ -117,6 +117,7 @@ def test_token_expirado():
 def test_token_con_firma_incorrecta():
     """Token firmado con otro secret debe ser rechazado"""
     import jwt
+
     from app.core.auth import JWT_ALGORITHM
 
     payload = {

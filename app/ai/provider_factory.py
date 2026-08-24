@@ -1,9 +1,9 @@
 import structlog
 
 from app.ai.providers.base_provider import BaseProvider
-from app.ai.providers.ollama_provider import OllamaProvider
-from app.ai.providers.huggingface_provider import HuggingFaceProvider
 from app.ai.providers.gemini_provider import GeminiProvider
+from app.ai.providers.huggingface_provider import HuggingFaceProvider
+from app.ai.providers.ollama_provider import OllamaProvider
 from app.core.config import settings
 
 logger = structlog.get_logger()

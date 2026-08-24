@@ -1,7 +1,6 @@
-import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
-from app.ai.vector_store import ChromaDBStore
+from unittest.mock import MagicMock, patch
 
+from app.ai.vector_store import ChromaDBStore
 
 # ============================
 # _txn_to_text

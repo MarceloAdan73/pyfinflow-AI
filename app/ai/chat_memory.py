@@ -1,4 +1,5 @@
 import json
+
 import structlog
 
 from app.core.config import settings

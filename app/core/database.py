@@ -1,10 +1,10 @@
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core.models_db import Base
-
 
 is_sqlite = settings.SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 

@@ -1,8 +1,4 @@
-import os
-import pytest
-from unittest.mock import patch
 from app.core.config import Settings
-
 
 # ============================
 # Settings defaults (class attrs evaluated at import time, .env may override)

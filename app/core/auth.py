@@ -1,7 +1,7 @@
-import os
-import time
 import hashlib
+import os
 import secrets
+import time
 from enum import Enum
 from typing import Optional
 
@@ -177,7 +177,7 @@ def limpiar_intento(ip: str):
 # ============================
 
 def get_supabase_client():
-    from supabase import create_client, Client
+    from supabase import create_client
     if not SUPABASE_URL or not SUPABASE_KEY:
         raise ValueError("Faltan SUPABASE_URL o SUPABASE_KEY en .env")
     return create_client(SUPABASE_URL, SUPABASE_KEY)

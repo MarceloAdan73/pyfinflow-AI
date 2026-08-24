@@ -1,24 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.ai.analytics import FinancialAnalytics
+from app.ai.chat_memory import ChatMemoryService
+from app.ai.provider_factory import ProviderFactory
+from app.ai.rag_engine import RAGEngine
+from app.ai.rate_limiter import AI_RATE_LIMIT, check_ai_rate_limit
+from app.ai.vector_store import ChromaDBStore
+from app.api.deps import get_current_user, get_repositories
 from app.api.schemas.ai import (
-    AIRequest,
-    AIResponse,
-    ChatMessageResponse,
-    InsightResponse,
-    InsightPrediction,
-    InsightAnomaly,
-    AIStatusResponse,
-    ProviderStatus,
     AIProviderSettingsRequest,
     AIProviderSettingsResponse,
+    AIRequest,
+    AIResponse,
+    AIStatusResponse,
+    ChatMessageResponse,
+    InsightAnomaly,
+    InsightPrediction,
+    InsightResponse,
+    ProviderStatus,
 )
-from app.api.deps import get_current_user, get_repositories
 from app.repositories.factory import RepositoryFactory
-from app.ai.rag_engine import RAGEngine
-from app.ai.chat_memory import ChatMemoryService
-from app.ai.analytics import FinancialAnalytics
-from app.ai.vector_store import ChromaDBStore
-from app.ai.provider_factory import ProviderFactory
 
 router = APIRouter(prefix="/ai", tags=["IA"])
 
@@ -74,8 +75,16 @@ def chat_with_ai(
     4. Si ningún provider está disponible, usa reglas locales
 
     El mensaje se guarda en el historial de conversación automáticamente.
+
+    Rate limiting: máximo 10 consultas por usuario por minuto.
     """
     user_id = current_user["id"]
+
+    if not check_ai_rate_limit(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Demasiadas consultas IA. Esperá un momento (límite: {AI_RATE_LIMIT}/min).",
+        )
 
     chat_memory = ChatMemoryService(repos.chats)
     chat_memory.guardar_mensaje(user_id, "user", data.pregunta)

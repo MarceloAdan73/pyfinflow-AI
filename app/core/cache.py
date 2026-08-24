@@ -1,5 +1,4 @@
 import json
-import time
 from typing import Any, Optional
 
 import structlog

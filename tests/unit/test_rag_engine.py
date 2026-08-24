@@ -1,7 +1,6 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from app.ai.rag_engine import RAGEngine
+from unittest.mock import MagicMock, patch
 
+from app.ai.rag_engine import RAGEngine
 
 # ============================
 # _build_messages

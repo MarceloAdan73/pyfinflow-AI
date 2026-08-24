@@ -1,12 +1,11 @@
 from app.core.cache import (
-    cache_get,
-    cache_set,
     cache_delete,
     cache_delete_pattern,
-    redis_rate_limit_check,
+    cache_get,
+    cache_set,
     redis_is_blocked,
+    redis_rate_limit_check,
     redis_rate_limit_reset,
-    MAX_LOGIN_ATTEMPTS,
 )
 
 

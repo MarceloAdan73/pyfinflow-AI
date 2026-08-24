@@ -3,9 +3,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.models_db import Base
-from app.core.database import Base as Base2
 from app.repositories.postgres_repo import (
-    TransactionRepository, BudgetRepository, GoalRepository, UserRepository
+    BudgetRepository,
+    GoalRepository,
+    TransactionRepository,
+    UserRepository,
 )
 
 
@@ -14,8 +16,8 @@ def db_session():
     """Crea sesión de testing con SQLite en memoria"""
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
     yield session
     session.close()
     Base.metadata.drop_all(bind=engine)

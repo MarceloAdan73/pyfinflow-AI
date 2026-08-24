@@ -1,13 +1,22 @@
 from sqlalchemy.orm import Session
 
-from app.repositories.base_repo import BaseRepository
+from app.repositories.postgres_repo import (
+    AIProviderConfigRepository as PgAIConfigRepo,
+)
+from app.repositories.postgres_repo import (
+    BudgetRepository as PgBudgetRepo,
+)
+from app.repositories.postgres_repo import (
+    ChatRepository as PgChatRepo,
+)
+from app.repositories.postgres_repo import (
+    GoalRepository as PgGoalRepo,
+)
 from app.repositories.postgres_repo import (
     TransactionRepository as PgTransactionRepo,
-    BudgetRepository as PgBudgetRepo,
-    GoalRepository as PgGoalRepo,
+)
+from app.repositories.postgres_repo import (
     UserRepository as PgUserRepo,
-    ChatRepository as PgChatRepo,
-    AIProviderConfigRepository as PgAIConfigRepo,
 )
 
 

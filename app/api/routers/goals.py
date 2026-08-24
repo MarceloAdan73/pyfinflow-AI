@@ -1,8 +1,9 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.schemas.goal import GoalCreate, GoalUpdate, GoalResponse
+from fastapi import APIRouter, Depends, HTTPException
+
 from app.api.deps import get_current_user, get_repositories
+from app.api.schemas.goal import GoalCreate, GoalResponse, GoalUpdate
 from app.repositories.factory import RepositoryFactory
 
 router = APIRouter(prefix="/goals", tags=["Metas de Ahorro"])

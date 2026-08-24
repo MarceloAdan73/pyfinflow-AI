@@ -1,7 +1,6 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from app.core.alerts import send_alert_email, alert_critical_error, alert_rate_limit_hit
+from unittest.mock import MagicMock, patch
 
+from app.core.alerts import alert_critical_error, alert_rate_limit_hit, send_alert_email
 
 # ============================
 # send_alert_email

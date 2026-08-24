@@ -1,6 +1,4 @@
-import pytest
-from app.utils.formatters import generar_id, formatear_monto, _parsear_numero, detectar_moneda
-
+from app.utils.formatters import _parsear_numero, detectar_moneda, formatear_monto, generar_id
 
 # ============================
 # generar_id

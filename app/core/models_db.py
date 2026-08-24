@@ -1,8 +1,15 @@
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
-    Column, String, Float, Integer, Text, DateTime, ForeignKey, UniqueConstraint, Index
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 

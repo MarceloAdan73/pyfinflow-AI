@@ -1,28 +1,28 @@
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from app.core.auth import (
-    hash_password,
-    verificar_password,
-    crear_access_token,
-    crear_refresh_token,
-    verificar_refresh_token,
-    registrar_intento_login,
-    esta_bloqueado,
-    limpiar_intento,
-    JWT_REFRESH_EXPIRY,
-)
-from app.core.metrics import metrics_collector
+from app.api.deps import get_current_user, get_repositories
 from app.api.schemas.auth import (
-    UserRegister,
-    UserLogin,
-    TokenResponse,
+    PasswordChange,
     RefreshRequest,
     RefreshResponse,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
     UserResponse,
-    PasswordChange,
 )
-from app.api.deps import get_repositories, get_current_user
+from app.core.auth import (
+    crear_access_token,
+    crear_refresh_token,
+    esta_bloqueado,
+    hash_password,
+    limpiar_intento,
+    registrar_intento_login,
+    verificar_password,
+    verificar_refresh_token,
+)
+from app.core.metrics import metrics_collector
 from app.repositories.factory import RepositoryFactory
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
@@ -94,18 +94,17 @@ def login(
     if esta_bloqueado(ip):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Demasiados intentos. Esperá 60s.",
+            detail="Demasiados intentos. Esperá 60s.",
         )
 
     if not registrar_intento_login(ip):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Demasiados intentos fallidos. Intentá de nuevo en 60s.",
+            detail="Demasiados intentos fallidos. Intentá de nuevo en 60s.",
         )
 
     user = repos.users.get_by_username(data.username)
     if not user:
-        limpiar_intento(ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario o contraseña incorrectos",
@@ -123,7 +122,6 @@ def login(
             repos.users.update(user["id"], {"password_hash": hash_password(data.password)})
 
     if not password_valid:
-        limpiar_intento(ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario o contraseña incorrectos",

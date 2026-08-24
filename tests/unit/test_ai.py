@@ -1,15 +1,15 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.ai.providers.base_provider import BaseProvider
-from app.ai.providers.ollama_provider import OllamaProvider
-from app.ai.providers.huggingface_provider import HuggingFaceProvider
-from app.ai.providers.gemini_provider import GeminiProvider
-from app.ai.provider_factory import ProviderFactory, _local_fallback
+import pytest
+
 from app.ai.analytics import FinancialAnalytics
 from app.ai.chat_memory import ChatMemoryService
+from app.ai.provider_factory import ProviderFactory, _local_fallback
+from app.ai.providers.base_provider import BaseProvider
+from app.ai.providers.gemini_provider import GeminiProvider
+from app.ai.providers.huggingface_provider import HuggingFaceProvider
+from app.ai.providers.ollama_provider import OllamaProvider
 from app.core.config import settings
-
 
 # ============================
 # BASE PROVIDER
@@ -289,3 +289,52 @@ def test_chat_memory_context():
     assert len(ctx) == 2
     assert ctx[0]["role"] == "user"
     assert ctx[1]["role"] == "assistant"
+
+
+# ============================
+# RATE LIMITER IA
+# ============================
+
+def test_rate_limiter_permite_bajo_el_limite():
+    from app.ai.rate_limiter import check_ai_rate_limit, reset_ai_rate_limit
+
+    reset_ai_rate_limit("rl_user")
+    results = [check_ai_rate_limit("rl_user") for _ in range(10)]
+    assert all(results)
+    reset_ai_rate_limit("rl_user")
+
+
+def test_rate_limiter_bloquea_despues_del_limite():
+    from app.ai.rate_limiter import AI_RATE_LIMIT, check_ai_rate_limit, reset_ai_rate_limit
+
+    reset_ai_rate_limit("rl_user2")
+    for _ in range(AI_RATE_LIMIT):
+        assert check_ai_rate_limit("rl_user2") is True
+    assert check_ai_rate_limit("rl_user2") is False
+    assert check_ai_rate_limit("rl_user2") is False
+    reset_ai_rate_limit("rl_user2")
+
+
+def test_rate_limiter_usuarios_independientes():
+    from app.ai.rate_limiter import AI_RATE_LIMIT, check_ai_rate_limit, reset_ai_rate_limit
+
+    reset_ai_rate_limit("u_a")
+    reset_ai_rate_limit("u_b")
+    for _ in range(AI_RATE_LIMIT):
+        check_ai_rate_limit("u_a")
+    assert check_ai_rate_limit("u_a") is False
+    assert check_ai_rate_limit("u_b") is True
+    reset_ai_rate_limit("u_a")
+    reset_ai_rate_limit("u_b")
+
+
+def test_rate_limiter_reset():
+    from app.ai.rate_limiter import AI_RATE_LIMIT, check_ai_rate_limit, reset_ai_rate_limit
+
+    reset_ai_rate_limit("u_c")
+    for _ in range(AI_RATE_LIMIT):
+        check_ai_rate_limit("u_c")
+    assert check_ai_rate_limit("u_c") is False
+    reset_ai_rate_limit("u_c")
+    assert check_ai_rate_limit("u_c") is True
+    reset_ai_rate_limit("u_c")

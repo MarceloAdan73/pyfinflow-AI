@@ -5,10 +5,10 @@ import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import auth, transactions, budgets, goals, ai
+from app.api.routers import ai, auth, budgets, goals, transactions
+from app.core.alerts import alert_critical_error
 from app.core.config import settings
 from app.core.metrics import metrics_collector
-from app.core.alerts import alert_critical_error
 
 logger = structlog.get_logger()
 
@@ -167,6 +167,7 @@ def health_check_detailed():
 
     try:
         from sqlalchemy import text
+
         from app.core.database import engine
 
         with engine.connect() as conn:

@@ -4,9 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.models_db import Base
-from app.core.database import get_db
 from app.api.main import app
+from app.core.database import get_db
+from app.core.models_db import Base
 
 
 @pytest.fixture(scope="function")
@@ -17,8 +17,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
 
     def override_get_db():
         try:

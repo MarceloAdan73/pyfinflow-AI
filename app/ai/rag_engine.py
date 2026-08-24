@@ -1,10 +1,9 @@
-import json
 import time
+
 import structlog
 
-from app.ai.vector_store import ChromaDBStore
 from app.ai.provider_factory import ProviderFactory
-from app.core.config import settings
+from app.ai.vector_store import ChromaDBStore
 from app.core.metrics import metrics_collector
 
 logger = structlog.get_logger()

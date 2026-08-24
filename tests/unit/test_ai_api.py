@@ -1,13 +1,14 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.models_db import Base
-from app.core.database import get_db
 from app.api.main import app
+from app.core.database import get_db
+from app.core.models_db import Base
 
 
 @pytest.fixture(scope="function")
@@ -18,8 +19,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
 
     def override_get_db():
         try:
@@ -87,6 +88,37 @@ def test_ai_chat_empty_question(client):
         "pregunta": ""
     }, headers=header)
     assert response.status_code == 422
+
+
+@patch("app.api.routers.ai.RAGEngine")
+def test_ai_chat_rate_limiting(mock_rag_cls, client):
+    """Después del límite (10/min), /ai/chat retorna 429 (roadmap 5.7)."""
+    from app.ai.rate_limiter import reset_ai_rate_limit
+
+    header = _get_auth_header(client)
+
+    mock_engine = MagicMock()
+    mock_engine.consultar.return_value = {
+        "respuesta": "ok",
+        "provider": "local_rules",
+        "contexto_usado": 0,
+        "latency_ms": 1.0,
+    }
+    mock_rag_cls.return_value = mock_engine
+
+    me = client.get("/auth/me", headers=header)
+    user_id = me.json()["id"]
+    reset_ai_rate_limit(user_id)
+
+    try:
+        codes = []
+        for _ in range(11):
+            r = client.post("/ai/chat", json={"pregunta": "test"}, headers=header)
+            codes.append(r.status_code)
+        assert all(c == 200 for c in codes[:10])
+        assert codes[10] == 429
+    finally:
+        reset_ai_rate_limit(user_id)
 
 
 # ============================

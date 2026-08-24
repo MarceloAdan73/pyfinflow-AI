@@ -4,9 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.models_db import Base
-from app.core.database import get_db
 from app.api.main import app
+from app.core.database import get_db
+from app.core.models_db import Base
 
 
 @pytest.fixture(scope="function")
@@ -17,8 +17,8 @@ def db_session():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
 
     def override_get_db():
         try:
@@ -109,6 +109,47 @@ def test_login_nonexistent_user(client):
         "password": "testpass123",
     })
     assert response.status_code == 401
+
+
+def test_login_rate_limiting(client):
+    """5 intentos fallidos permitidos, el 6to retorna 429 (roadmap 3.8)."""
+    from app.core.auth import limpiar_intento
+
+    client.post("/auth/register", json={"username": "rluser", "password": "testpass123"})
+    limpiar_intento("testclient")
+
+    try:
+        codes = []
+        for _ in range(6):
+            r = client.post("/auth/login", json={
+                "username": "rluser",
+                "password": "wrongpassword",
+            })
+            codes.append(r.status_code)
+        assert codes[:5] == [401] * 5
+        assert codes[5] == 429
+    finally:
+        limpiar_intento("testclient")
+
+
+def test_login_success_resetea_contador(client):
+    """Después de un login exitoso el contador de intentos se limpia."""
+    from app.core.auth import limpiar_intento
+
+    client.post("/auth/register", json={"username": "rlreset", "password": "testpass123"})
+    limpiar_intento("testclient")
+
+    try:
+        for _ in range(4):
+            client.post("/auth/login", json={"username": "rlreset", "password": "bad"})
+        ok = client.post("/auth/login", json={"username": "rlreset", "password": "testpass123"})
+        assert ok.status_code == 200
+
+        for _ in range(4):
+            r = client.post("/auth/login", json={"username": "rlreset", "password": "bad"})
+            assert r.status_code == 401
+    finally:
+        limpiar_intento("testclient")
 
 
 # ============================
