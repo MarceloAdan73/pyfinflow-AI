@@ -725,8 +725,8 @@ frontend/
 **Tiempo estimado:** 5-7 días
 
 ### 8.1 Notificaciones
-- [ ] Email notifications (using `smtplib` + templates)
-- [ ] Alertas de presupuesto excedido
+- [x] Email notifications (using `smtplib` + templates) — `app/core/alerts.py:13` base + `alert_budget_*` 24/08/2026
+- [x] Alertas de presupuesto excedido — `app/services/budget_alerts.py:1` + `GET /budgets/alerts` + hook `POST /transactions` + frontend `useBudgetAlerts` + banners dashboard/budgets (F8.1a+b 24/08/2026)
 - [ ] Recordatorios de metas
 - [ ] Resumen semanal automático
 
@@ -848,11 +848,11 @@ frontend/
 | Fase 5: IA Profesional | ✅ Completada | 100% |
 | Fase 6: Frontend | ✅ Completada | 100% |
 | Fase 7: i18n | ✅ Completada | 100% |
-| Fase 8: Features | ⬜ No iniciada | 0% |
+| Fase 8: Features | 🟡 En curso | 25% (8.1a+b alertas presupuesto) |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: ~78%** (Fases 0-7 completadas)
+**Progreso total: ~80%** (Fases 0-7 completadas + F8.1a+b)
 
 > **Próximo paso (Fase 8 + polish):** ~~darle funcionalidad real al modo dark/light~~ ✅ hecho 24/08/2026. Sigue: Fase 9 parcial (tests faltantes) → Fase 8.
 >
@@ -876,6 +876,12 @@ frontend/
 > - ✅ Favicon propio: `frontend/src/app/icon.svg` (reemplaza el genérico)
 > - ✅ Metadata actualizada: título "PyStreamFlow AI"
 > - Frontend: lint 0 errores, build 22/22 páginas OK
+>
+> **Sesión 24/08/2026 (parte 3) — F8.1a+b:**
+> - ✅ Backend: `app/services/budget_alerts.py` (compute 80%/100%, orden desc), `GET /budgets/alerts?mes=YYYY-MM`, hook no-bloqueante en `POST /transactions` + `alert_budget_exceeded/warning` (`app/core/alerts.py:54`)
+> - ✅ Frontend: `useBudgetAlerts` (`frontend/src/hooks/use-budget-alerts.ts:1`) + banners en `dashboard/page.tsx:1` y `budgets/page.tsx:1` (amber warning vs destructive), `BudgetAlert` type, i18n `budgets.warning/alertTitle`
+> - ✅ Tests: +21 (13 unit `test_budget_alerts.py` + 8 API `test_budget_alerts_api.py`) → **203 passed**, ruff 0, frontend lint 0, build 22/22
+> - ⏭️ Next F8: 8.1c recordatorios metas / 8.2 import CSV (a definir)
 >
 > **Pendiente de decisión (IA local):**
 > - Modelo Ollama `qwen3.5:9b` muy lento en CPU (~90s/respuesta, modo thinking). Probar `llama3.2:3b`
