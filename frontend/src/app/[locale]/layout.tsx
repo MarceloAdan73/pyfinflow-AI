@@ -10,8 +10,8 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: "PyStreamFlow | Fintech AI",
-  description: "Plataforma de gestión financiera personal con IA",
+  title: "PyStreamFlow AI",
+  description: "Gestión financiera personal inteligente con IA",
 };
 
 const themeScript = `

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Wallet, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -34,11 +35,8 @@ export function Navbar() {
 
   return (
     <header className="md:hidden sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Wallet className="h-5 w-5 text-primary" />
-        <span className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          PyStreamFlow
-        </span>
+      <div className="flex items-center">
+        <Logo href={`/${locale}/dashboard`} size="sm" />
       </div>
 
       <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>

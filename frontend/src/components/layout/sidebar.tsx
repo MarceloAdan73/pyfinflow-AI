@@ -11,11 +11,11 @@ import {
   Bot,
   Settings,
   LogOut,
-  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { Logo } from "@/components/ui/logo";
 import { useLocale, useTranslations } from "next-intl";
 
 export function Sidebar() {
@@ -34,11 +34,8 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen border-r border-border bg-card/50 backdrop-blur-xl p-4 fixed left-0 top-0 z-40">
-      <div className="flex items-center gap-2 mb-8 px-2">
-        <Wallet className="h-7 w-7 text-primary" />
-        <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          PyStreamFlow
-        </span>
+      <div className="mb-8 px-2">
+        <Logo href={`/${locale}/dashboard`} size="md" />
       </div>
 
       <nav className="flex-1 space-y-1">

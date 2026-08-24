@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Wallet } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
@@ -44,10 +44,8 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-3">
-            <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-primary" />
-            </div>
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" />
           </div>
           <CardTitle className="text-2xl">{t("title")}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
