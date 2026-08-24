@@ -863,6 +863,13 @@ frontend/
 > - ✅ Limpieza lint: 77 errores ruff → 0 (imports, dead code `PLACEHOLDERS_DESCRIPCION`, N806 en tests)
 > - ✅ pyproject.toml: migrado `[tool.ruff]` a `[tool.ruff.lint]` (formato actual)
 > - Tests: 175 → 182 | Cobertura backend: ~78%
+>
+> **Pruebas en local (24/08/2026, backend :8000):**
+> - ✅ Rate limiting login verificado en vivo: 5×401 → 429
+> - ✅ Fix nuevo: `busy_timeout=5000` en SQLite (`database.py`) — `/ai/chat` daba 500 `database is locked` con escrituras concurrentes; ahora 200 OK
+> - ⚠️ Latencia IA ~90s: `qwen3.5:9b` (6.6GB) muy pesado para CPU + modo thinking quema tokens. Pendiente: probar modelo liviano (ej: llama3.2:3b)
+> - ⚠️ `chromadb_not_installed` en entorno local — RAG se salta (context_results=0). Instalar con `pip install chromadb`
+> - ✅ Rate limit IA relajado y configurable: `AI_RATE_LIMIT_PER_MIN` (default 30/min, era 10 fijo)
 
 ---
 

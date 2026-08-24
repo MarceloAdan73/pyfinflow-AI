@@ -76,7 +76,7 @@ def chat_with_ai(
 
     El mensaje se guarda en el historial de conversación automáticamente.
 
-    Rate limiting: máximo 10 consultas por usuario por minuto.
+    Rate limiting: máximo configurable vía AI_RATE_LIMIT_PER_MIN (default 30/min).
     """
     user_id = current_user["id"]
 

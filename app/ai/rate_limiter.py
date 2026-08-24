@@ -3,7 +3,9 @@
 import time
 from typing import Dict, List
 
-AI_RATE_LIMIT = 10
+from app.core.config import settings
+
+AI_RATE_LIMIT = settings.AI_RATE_LIMIT_PER_MIN
 AI_RATE_WINDOW = 60
 
 _ai_calls: Dict[str, List[float]] = {}

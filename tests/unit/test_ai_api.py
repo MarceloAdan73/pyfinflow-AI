@@ -92,8 +92,8 @@ def test_ai_chat_empty_question(client):
 
 @patch("app.api.routers.ai.RAGEngine")
 def test_ai_chat_rate_limiting(mock_rag_cls, client):
-    """Después del límite (10/min), /ai/chat retorna 429 (roadmap 5.7)."""
-    from app.ai.rate_limiter import reset_ai_rate_limit
+    """Después del límite configurado, /ai/chat retorna 429 (roadmap 5.7)."""
+    from app.ai.rate_limiter import AI_RATE_LIMIT, reset_ai_rate_limit
 
     header = _get_auth_header(client)
 
@@ -112,11 +112,11 @@ def test_ai_chat_rate_limiting(mock_rag_cls, client):
 
     try:
         codes = []
-        for _ in range(11):
+        for _ in range(AI_RATE_LIMIT + 1):
             r = client.post("/ai/chat", json={"pregunta": "test"}, headers=header)
             codes.append(r.status_code)
-        assert all(c == 200 for c in codes[:10])
-        assert codes[10] == 429
+        assert all(c == 200 for c in codes[:AI_RATE_LIMIT])
+        assert codes[AI_RATE_LIMIT] == 429
     finally:
         reset_ai_rate_limit(user_id)
 

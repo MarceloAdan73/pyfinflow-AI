@@ -42,6 +42,7 @@ class Settings:
     AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "500"))
     AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.7"))
     AI_CONTEXT_WINDOW: int = int(os.getenv("AI_CONTEXT_WINDOW", "20"))
+    AI_RATE_LIMIT_PER_MIN: int = int(os.getenv("AI_RATE_LIMIT_PER_MIN", "30"))
 
 
 settings = Settings()
