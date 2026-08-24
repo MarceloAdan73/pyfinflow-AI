@@ -21,8 +21,12 @@ const themeScript = `
       if (theme === 'light') {
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.add('dark');
       }
-    } catch(e) {}
+    } catch(e) {
+      document.documentElement.classList.add('dark');
+    }
   })()
 `;
 
@@ -46,7 +50,7 @@ export default async function LocaleLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground antialiased dark">
+      <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>

@@ -679,6 +679,7 @@ frontend/
 - [x] Perfil de usuario (username, rol)
 - [x] Cambio de contraseña con validación
 - [x] Toggle de tema oscuro/claro (persiste en localStorage)
+- [x] Fix dark/light mode real (24/08/2026): body ya no fuerza `dark`, themeScript aplica default dark, gráficos Recharts con CSS vars adaptables
 - [x] Responsive final: mobile, tablet, desktop
 - [x] Transiciones de página con Framer Motion
 - [x] Configuración IA completa: proveedores, Ollama URL/modelo, API keys, parámetros de generación
@@ -853,7 +854,7 @@ frontend/
 
 **Progreso total: ~78%** (Fases 0-7 completadas)
 
-> **Próximo paso (Fase 8 + polish):** darle funcionalidad real al modo dark/light y revisar que todo funcione en el frontend.
+> **Próximo paso (Fase 8 + polish):** ~~darle funcionalidad real al modo dark/light~~ ✅ hecho 24/08/2026. Sigue: Fase 9 parcial (tests faltantes) → Fase 8.
 
 ---
 

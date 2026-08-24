@@ -56,19 +56,20 @@ export function MonthlyChart({ data, isLoading, currency }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip
                 formatter={(value) => {
                   const v = Array.isArray(value) ? value[0] : value;
                   return formatMoney(Number(v ?? 0), currency);
                 }}
+                cursor={{ fill: "var(--muted)", opacity: 0.5 }}
                 contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid #334155",
+                  backgroundColor: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: "8px",
-                  color: "#f8fafc",
+                  color: "var(--foreground)",
                 }}
               />
               <Legend />

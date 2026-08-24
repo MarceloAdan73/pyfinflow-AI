@@ -62,10 +62,10 @@ export function CategoryPie({ data, isLoading, currency }: Props) {
                   return formatMoney(Number(v ?? 0), currency);
                 }}
                 contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid #334155",
+                  backgroundColor: "var(--card)",
+                  border: "1px solid var(--border)",
                   borderRadius: "8px",
-                  color: "#f8fafc",
+                  color: "var(--foreground)",
                 }}
               />
               <Legend
