@@ -46,7 +46,7 @@
 | **Deploy actual** | Local (dev) — backend :8000, frontend :3000 |
 | **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
 | **Branch** | `main` (producción), `dev` (desarrollo) — se trabaja siempre en `dev` |
-| **Último commit dev** | 14/08/2026 (fix i18n es/en + arranque local frontend) |
+| **Último commit dev** | 24/08/2026 (branding + dark/light + rate limiting + lint 0) |
 | **Cache** | Redis con fallback a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
 
 ### Decisiones técnicas clave (contexto)
@@ -870,6 +870,16 @@ frontend/
 > - ⚠️ Latencia IA ~90s: `qwen3.5:9b` (6.6GB) muy pesado para CPU + modo thinking quema tokens. Pendiente: probar modelo liviano (ej: llama3.2:3b)
 > - ⚠️ `chromadb_not_installed` en entorno local — RAG se salta (context_results=0). Instalar con `pip install chromadb`
 > - ✅ Rate limit IA relajado y configurable: `AI_RATE_LIMIT_PER_MIN` (default 30/min, era 10 fijo)
+>
+> **Sesión 24/08/2026 (parte 2):**
+> - ✅ Branding propio: componente `Logo` (mark SVG con gradiente + wordmark + badge AI) en sidebar, navbar, login y register
+> - ✅ Favicon propio: `frontend/src/app/icon.svg` (reemplaza el genérico)
+> - ✅ Metadata actualizada: título "PyStreamFlow AI"
+> - Frontend: lint 0 errores, build 22/22 páginas OK
+>
+> **Pendiente de decisión (IA local):**
+> - Modelo Ollama `qwen3.5:9b` muy lento en CPU (~90s/respuesta, modo thinking). Probar `llama3.2:3b`
+> - `chromadb` no instalado localmente → RAG sin búsqueda semántica (fallback a agregados funciona)
 
 ---
 
