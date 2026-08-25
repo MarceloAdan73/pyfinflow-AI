@@ -6,11 +6,11 @@
 ![Coverage](https://img.shields.io/codecov/c/github/MarceloAdan73/pystreamflow-AI?style=for-the-badge)
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.139+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-175%20passed-brightgreen?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-221%20passed-brightgreen?style=for-the-badge)
 
 **🚀 Personal finance management web app with integrated AI**
 
@@ -29,16 +29,17 @@
 | 🤖 **AI** | Financial assistant with RAG + multi-provider (Ollama, HuggingFace, Gemini) |
 | 💾 **Persistent** | PostgreSQL (prod) + SQLite (dev) with Repository Pattern |
 | 🔒 **Secure** | bcrypt + JWT + rate limiting + role-based access |
-| 🧪 **Tested** | 175 tests passing (unit + integration) |
+| 🧪 **Tested** | 221 tests passing (unit + integration) |
 | 📖 **Documented** | Full Swagger/ReDoc API documentation |
-| 🌍 **i18n** | Spanish, English, Portuguese |
+| 🌍 **i18n** | Spanish, English |
 | 💱 **Multi-currency** | ARS, USD, EUR, BRL with live conversion |
 
 ---
 
 ## 📱 Demo
 
-**[🔗 Live App](https://pystreamflow-ai-ufg7wsp8pcxpatqt3lxrsk.streamlit.app/)** ↗️
+> **Demo actual:** local (`http://localhost:3000` + `http://localhost:8000/docs`) — deploy público Vercel/Render pendiente (Fase 10).
+> Legacy Streamlit: `https://pystreamflow-ai-ufg7wsp8pcxpatqt3lxrsk.streamlit.app/` (deprecado).
 
 ---
 
@@ -137,66 +138,62 @@
 ## 🛠️ Installation
 
 ### Requirements
-- Python 3.10+
-- pip
+- Python 3.12+ / Node 20+
+- PostgreSQL 16 (opcional, SQLite por defecto) + pip + npm
 
 ### Step by step
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-user/pystreamflow.git
-cd pystreamflow
+# 1. Clone
+git clone https://github.com/MarceloAdan73/pystreamflow-AI.git
+cd pystreamflow-AI
 
-# 2. Create virtual environment
+# 2. Backend
 python -m venv venv
-
 # Windows
 venv\Scripts\activate
-
 # macOS/Linux
 source venv/bin/activate
-
-# 3. Install dependencies
 pip install -r requirements.txt
+cp .env.example .env  # configurar DATABASE_URL, JWT_SECRET, OLLAMA_URL
+uvicorn app.api.main:app --reload --port 8000
+# Swagger: http://localhost:8000/docs
 
-# 4. Configure environment variables (optional)
-cp .env.example .env
+# 3. Frontend
+cd frontend
+npm install
+npm run dev
+# App: http://localhost:3000 (login: demo/demo123)
 
-# 5. Run
-streamlit run pystreamflow.py
+# 4. Datos demo (opcional)
+python scripts/seed_demo.py
 ```
 
-### 🚀 Deploy on Streamlit Cloud
+### 🚀 Deploy
 
-```bash
-# 1. Push to GitHub
-# 2. Go to https://streamlit.io/cloud
-# 3. Connect GitHub → Select repo
-# 4. Main file: pystreamflow.py
-# 5. Enjoy! 🌐
-```
+* **Frontend:** Vercel (`frontend/` → Next.js 16)
+* **Backend:** Render/Railway/Fly (`uvicorn app.api.main:app --host 0.0.0.0`)
+* **Legacy Streamlit** deprecado (no recomendado)
 
 ---
 
 ## 🏗️ Technical Architecture
 
 ```
-pystreamflow/
-├── pystreamflow.py       # ⭐ Main app (3134 lines)
-├── database.py           # 📦 SQLite data layer (479 lines)
-├── auth.py               # 🔐 Supabase auth (181 lines)
-├── style.css             # 🎨 Styles (1540 lines)
-├── test_app.py           # 🧪 Unit tests (213 lines)
-├── requirements.txt      # 📋 Dependencies
-├── pyproject.toml        # ⚙️ Python config
-├── .env.example          # 🔧 Config template
-├── LICENSE               # 📜 MIT License
-├── README.md             # 📖 This file
-├── run.bat / run.sh      # ⚡ Run scripts
-├── static/
-│   ├── manifest.json     # 📱 PWA manifest
-│   └── service-worker.js # 🌐 PWA service worker
-└── venv/                 # 🐍 Virtual environment (not versioned)
+pystreamflow-AI/
+├── app/
+│   ├── api/              # FastAPI + routers (auth, transactions, budgets, goals, ai) + schemas
+│   ├── core/             # config, auth (bcrypt/JWT), database (SQLAlchemy), cache, metrics
+│   ├── ai/               # RAG, vector_store (ChromaDB), providers (Ollama/HF/Gemini)
+│   ├── services/         # budget_alerts, csv_import
+│   └── repositories/     # Repository Pattern (postgres_repo, factory)
+├── frontend/             # Next.js 16 + React 19 + Tailwind v4 + next-intl (es/en)
+├── alembic/              # Migraciones (001_initial_schema, 002_chat_messages)
+├── tests/unit/           # 221 tests
+├── scripts/seed_demo.py  # Datos demo (~70 txns, presupuestos, metas)
+├── docker-compose.yml    # app + PostgreSQL + Redis + ChromaDB
+├── pyproject.toml        # ruff + pytest
+└── ROADMAP_SAAS.md       # Roadmap Fases 0-10
 ```
 
 ---
@@ -207,14 +204,13 @@ pystreamflow/
 
 | Layer | Technology | Version |
 |-------|------------|---------|
-| **Framework** | Streamlit | ≥1.30.0 |
-| **Data** | Pandas | ≥2.0.0 |
-| **Visualization** | Plotly | ≥5.18.0 |
-| **PDF** | ReportLab | ≥4.0.0 |
-| **Database** | SQLite | built-in |
-| **AI Cloud** | HuggingFace Hub | ≥0.20.0 |
-| **Auth Cloud** | Supabase | ≥2.0.0 |
-| **Testing** | Pytest | ≥8.0.0 |
+| **Backend** | FastAPI + SQLAlchemy + Alembic | 0.139 / 2.0 / 1.13 |
+| **Frontend** | Next.js + React + Tailwind + next-intl | 16.2 / 19 / 4 |
+| **DB** | PostgreSQL 16 (prod) / SQLite (dev) | 16 |
+| **AI** | Ollama + ChromaDB + HuggingFace + Gemini | local/cloud |
+| **Auth** | bcrypt + JWT + rate limiting | 12 rounds / 1h access |
+| **Cache** | Redis (fallback in-memory) | 7 |
+| **Testing** | Pytest + Ruff | 8 / 0.2 |
 
 ### Database Schema
 
@@ -295,7 +291,7 @@ pytest tests/ -v --cov=app --cov-report=html
 pytest tests/unit/test_formatters.py -v
 ```
 
-**Results:** 175 tests passing ✅
+**Results:** 221 tests passing ✅
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
@@ -311,6 +307,8 @@ pytest tests/unit/test_formatters.py -v
 | `test_config.py` | 11 | Settings types and defaults |
 | `test_cache.py` | 7 | Redis fallback, rate limiting |
 | `test_metrics.py` | 6 | Request tracking, Prometheus format |
+| `test_budget_alerts.py` + `test_budget_alerts_api.py` | 21 | Alertas 80%/100% presupuesto |
+| `test_csv_import.py` + `test_csv_import_api.py` | 18 | Import CSV (EU/US, ;/, aliases) |
 
 ---
 
@@ -346,14 +344,15 @@ Once running, visit:
 
 ## 🔮 Roadmap
 
-- [x] Multi-currency (ARS, USD, EUR, BRL)
-- [x] API documentation (Swagger/ReDoc)
-- [x] Demo seed data
-- [x] 175 tests passing
-- [ ] Deploy to production (Vercel + Railway/Render)
-- [ ] PWA mode
-- [ ] Excel/CSV export
-- [ ] Push notifications
+- [x] Multi-currency (ARS, USD, EUR, BRL) — Fase 7
+- [x] API documentation (Swagger/ReDoc) — Fase 3
+- [x] Demo seed data — `scripts/seed_demo.py`
+- [x] 221 tests + Ruff 0 — Fase 4-5
+- [x] Alerts presupuesto 80%/100% — Fase 8.1
+- [x] Import CSV (EU/US, 2MB/1000 filas) — Fase 8.2
+- [ ] Deploy a producción (Vercel + Render) — Fase 10
+- [ ] PWA offline — Fase 8.3
+- [ ] Export Excel/PDF — Fase 8.2
 
 ---
 
