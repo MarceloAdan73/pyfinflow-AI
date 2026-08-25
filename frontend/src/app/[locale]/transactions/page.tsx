@@ -13,7 +13,7 @@ import { useTransactions } from "@/hooks/use-transactions";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { formatMoney, formatDate } from "@/lib/utils";
 import type { TransactionCreate } from "@/types";
-import { Plus, Trash2, Edit, Filter, Search } from "lucide-react";
+import { Plus, Trash2, Edit, Filter, Search, Upload, FileText } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useTranslations } from "next-intl";
@@ -32,7 +32,12 @@ export default function TransactionsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const { transactions, isLoading, createTransaction, updateTransaction, deleteTransaction } = useTransactions(filters);
+  const { transactions, isLoading, createTransaction, updateTransaction, deleteTransaction, importTransactions } = useTransactions(filters);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<string[][] | null>(null);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: { row: number; detail: string }[] } | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
 
   const filteredTransactions = transactions.filter((txn) => {
     if (!search) return true;
@@ -101,6 +106,29 @@ export default function TransactionsPage() {
     setConfirmOpen(true);
   };
 
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    setImportFile(f);
+    setImportResult(null);
+    if (!f) { setImportPreview(null); return; }
+    const text = await f.text();
+    const lines = text.split(/\r?\n/).filter(Boolean).slice(0, 6); // header + 5 preview
+    setImportPreview(lines.map((l) => l.split(/[,;]/).map((c) => c.trim().replace(/^"|"$/g, ""))));
+  };
+
+  const handleImport = async () => {
+    if (!importFile) return;
+    setImportLoading(true);
+    try {
+      const res = await importTransactions(importFile);
+      setImportResult(res);
+    } catch (err: unknown) {
+      setImportResult({ imported: 0, skipped: 0, errors: [{ row: 0, detail: err instanceof Error ? err.message : "Error desconocido" }] });
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <PageTransition>
@@ -111,9 +139,14 @@ export default function TransactionsPage() {
                 <h1 className="text-2xl font-bold">{t("title")}</h1>
                 <p className="text-muted-foreground">{t("description")}</p>
               </div>
-              <Button onClick={openCreate} className="gap-2">
-                <Plus className="h-4 w-4" /> {t("new")}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+                  <Upload className="h-4 w-4" /> {t("import")}
+                </Button>
+                <Button onClick={openCreate} className="gap-2">
+                  <Plus className="h-4 w-4" /> {t("new")}
+                </Button>
+              </div>
             </div>
           </StaggerItem>
 
@@ -280,6 +313,49 @@ export default function TransactionsPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <Dialog open={importOpen} onOpenChange={(o) => { setImportOpen(o); if (!o) { setImportFile(null); setImportPreview(null); setImportResult(null); } }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FileText className="h-4 w-4" /> {t("importTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t("importDescription")}</p>
+            <div className="rounded-md bg-secondary/50 p-3 text-xs font-mono">
+              fecha,tipo,monto,categoria,descripcion,moneda<br />2026-07-19,Gasto,1500,Comida,Almuerzo,ARS
+            </div>
+            <Input type="file" accept=".csv" onChange={handleImportFile} />
+            {importPreview && (
+              <div className="rounded border overflow-auto max-h-40 text-xs">
+                <table className="w-full">
+                  <tbody>
+                    {importPreview.map((row, i) => (
+                      <tr key={i} className={i === 0 ? "bg-secondary font-semibold" : ""}>
+                        {row.map((c, j) => <td key={j} className="px-2 py-1 border-b whitespace-nowrap">{c}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {importResult && (
+              <div className={`rounded p-3 text-sm ${importResult.errors.length ? "bg-amber-50 dark:bg-amber-950/30" : "bg-emerald-50 dark:bg-emerald-950/30"}`}>
+                <p>{t("importResult", { imported: importResult.imported, skipped: importResult.skipped })}</p>
+                {importResult.errors.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-xs space-y-1">
+                    {importResult.errors.slice(0, 5).map((e, i) => <li key={i}>Fila {e.row}: {e.detail}</li>)}
+                    {importResult.errors.length > 5 && <li>... +{importResult.errors.length - 5} más</li>}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportOpen(false)}>{tc("close")}</Button>
+            <Button onClick={handleImport} disabled={!importFile || importLoading}>{importLoading ? tc("loading") : t("importAction")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}

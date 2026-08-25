@@ -41,6 +41,32 @@ export function useTransactions(filters?: Record<string, string>) {
     mutate();
   };
 
+  const importTransactions = async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    // api() fuerza Content-Type json; para FormData usamos fetch directo con token
+    const stored = typeof window !== "undefined" ? localStorage.getItem("auth-storage") : null;
+    let token: string | undefined;
+    try {
+      if (stored) token = JSON.parse(stored)?.state?.tokens?.access_token;
+    } catch {}
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/transactions/import`, {
+      method: "POST",
+      headers,
+      body: form,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Error importando CSV" }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    mutate();
+    return data as { imported: number; skipped: number; errors: { row: number; detail: string }[]; total_rows: number };
+  };
+
   return {
     transactions: data || [],
     isLoading,
@@ -49,5 +75,6 @@ export function useTransactions(filters?: Record<string, string>) {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    importTransactions,
   };
 }

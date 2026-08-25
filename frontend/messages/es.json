@@ -97,6 +97,11 @@
     "category": "Categoría",
     "date": "Fecha",
     "descriptionPlaceholder": "Descripción breve",
+    "import": "Importar",
+    "importTitle": "Importar CSV",
+    "importDescription": "Subí un CSV con columnas fecha, tipo, monto, categoria (alias y delimitador ; también soportados). Máx 1000 filas / 2MB.",
+    "importAction": "Importar",
+    "importResult": "{imported} importadas, {skipped} omitidas",
     "deleteTitle": "Eliminar transacción",
     "deleteDescription": "¿Estás seguro de que querés eliminar esta transacción? Esta acción no se puede deshacer."
   },

@@ -97,6 +97,11 @@
     "category": "Category",
     "date": "Date",
     "descriptionPlaceholder": "Brief description",
+    "import": "Import",
+    "importTitle": "Import CSV",
+    "importDescription": "Upload a CSV with columns fecha, tipo, monto, categoria (aliases and ; delimiter also supported). Max 1000 rows / 2MB.",
+    "importAction": "Import",
+    "importResult": "{imported} imported, {skipped} skipped",
     "deleteTitle": "Delete transaction",
     "deleteDescription": "Are you sure you want to delete this transaction? This action cannot be undone."
   },
