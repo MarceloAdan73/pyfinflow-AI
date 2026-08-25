@@ -1,6 +1,7 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user, get_repositories
 from app.api.schemas.transaction import (
@@ -9,6 +10,20 @@ from app.api.schemas.transaction import (
     TransactionUpdate,
 )
 from app.repositories.factory import RepositoryFactory
+from app.services.csv_import import MAX_ROWS, MAX_SIZE_BYTES, parse_csv_bytes
+
+
+class ImportResult(BaseModel):
+    imported: int = Field(..., description="Filas importadas con éxito")
+    skipped: int = Field(..., description="Filas omitidas por error de validación")
+    errors: list[dict] = Field(default_factory=list, description="Detalle por fila: {row, detail}")
+    total_rows: int = Field(..., description="Total filas procesadas (sin header)")
+
+
+class ImportPreviewRow(BaseModel):
+    row: int
+    data: dict | None
+    error: str | None
 
 router = APIRouter(prefix="/transactions", tags=["Transacciones"])
 
@@ -103,6 +118,59 @@ def create_transaction(
             # Nunca romper la creación de transacción por un fallo de alerta
             pass
     return txn
+
+
+@router.post(
+    "/import",
+    response_model=ImportResult,
+    summary="Importar transacciones desde CSV",
+    response_description="Resultado del import: conteos y errores por fila",
+)
+async def import_transactions(
+    file: UploadFile = File(..., description="Archivo CSV (max 2MB, 1000 filas, headers: fecha,tipo,monto,categoria,descripcion,moneda)"),
+    current_user: dict = Depends(get_current_user),
+    repos: RepositoryFactory = Depends(get_repositories),
+):
+    """Importa transacciones en lote desde CSV.
+
+    - **Headers flexibles**: fecha/date, tipo/type, monto/amount, categoria/category, descripcion, moneda (alias soportados, delimitador , o ;)
+    - **Formatos fecha**: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, ISO
+    - **Montos**: soporta 1.500,50 (EU) y 1500.50 (US) vía `_parsear_numero`
+    - **Límites**: 2MB / 1000 filas; filas inválidas se reportan en `errors` sin abortar el lote
+    - Requiere auth; todo queda asociado a `current_user`
+    """
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="archivo vacío")
+    if len(content) > MAX_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail=f"archivo excede {MAX_SIZE_BYTES // 1024}KB")
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        # permitir igual si el contenido parece CSV, pero advertir
+        pass
+
+    valid_rows, errors = parse_csv_bytes(content)
+    imported = 0
+    for row in valid_rows:
+        if imported + len(errors) >= MAX_ROWS:
+            break
+        repos.transactions.create({
+            "id": f"txn_{uuid.uuid4().hex[:16]}",
+            "user_id": current_user["id"],
+            "tipo": row["tipo"],
+            "monto": row["monto"],
+            "categoria": row["categoria"],
+            "descripcion": row.get("descripcion", ""),
+            "fecha": row["fecha"],
+            "moneda": row.get("moneda", "ARS"),
+        })
+        imported += 1
+
+    return ImportResult(
+        imported=imported,
+        skipped=len(errors),
+        errors=errors,
+        total_rows=imported + len(errors),
+    )
 
 
 @router.get(
