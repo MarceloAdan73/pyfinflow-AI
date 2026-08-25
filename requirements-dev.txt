@@ -1,4 +1,4 @@
-# PyStreamFlow - Development Dependencies
+# PyFinFlow - Development Dependencies
 # Install with: pip install -r requirements-dev.txt
 
 # Testing

@@ -21,8 +21,8 @@ def send_alert_email(
 
     try:
         msg = EmailMessage()
-        msg["Subject"] = f"[PyStreamFlow] {subject}"
-        msg["From"] = settings.SMTP_USER or "alerts@pystreamflow.app"
+        msg["Subject"] = f"[PyFinFlow] {subject}"
+        msg["From"] = settings.SMTP_USER or "alerts@pyfinflow.app"
         msg["To"] = to_email or settings.ALERT_EMAIL_TO
         msg.set_content(body)
 
@@ -71,7 +71,7 @@ def alert_budget_exceeded(
     """
     subject = f"Presupuesto excedido: {categoria} ({mes})"
     body = (
-        f"Alerta de presupuesto PyStreamFlow\n\n"
+        f"Alerta de presupuesto PyFinFlow\n\n"
         f"Categoría: {categoria}\n"
         f"Período: {mes}\n"
         f"Límite: ${limite:,.2f}\n"
@@ -93,7 +93,7 @@ def alert_budget_warning(
     """Email de advertencia cuando se supera el 80% del presupuesto."""
     subject = f"Alerta presupuesto: {categoria} al {porcentaje:.0f}% ({mes})"
     body = (
-        f"Alerta de presupuesto PyStreamFlow\n\n"
+        f"Alerta de presupuesto PyFinFlow\n\n"
         f"Categoría: {categoria}\n"
         f"Período: {mes}\n"
         f"Límite: ${limite:,.2f}\n"

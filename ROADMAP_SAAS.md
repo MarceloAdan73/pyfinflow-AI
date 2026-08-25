@@ -1,4 +1,4 @@
-# PyStreamFlow-AI → SaaS Profesional
+# PyFinFlow-AI → SaaS Profesional (ex PyStreamFlow)
 ## Roadmap de Escalación Completo
 
 **Fecha de inicio:** 18/07/2026
