@@ -1,9 +1,9 @@
-# 💰 PyStreamFlow
+# 💰 PyFinFlow
 
 <div align="center">
 
-![CI](https://github.com/MarceloAdan73/pystreamflow-AI/actions/workflows/ci.yml/badge.svg)
-![Coverage](https://img.shields.io/codecov/c/github/MarceloAdan73/pystreamflow-AI?style=for-the-badge)
+![CI](https://github.com/MarceloAdan73/pyfinflow-AI/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/codecov/c/github/MarceloAdan73/pyfinflow-AI?style=for-the-badge)
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.139+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -20,7 +20,7 @@
 
 ---
 
-## 🌟 Why PyStreamFlow?
+## 🌟 Why PyFinFlow?
 
 | Feature | Description |
 |---------|-------------|
@@ -61,7 +61,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  💰 PyStreamFlow                              [Dashboard]   │
+│  💰 PyFinFlow                                 [Dashboard]   │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
@@ -145,8 +145,8 @@
 
 ```bash
 # 1. Clone
-git clone https://github.com/MarceloAdan73/pystreamflow-AI.git
-cd pystreamflow-AI
+git clone https://github.com/MarceloAdan73/pyfinflow-AI.git
+cd pyfinflow-AI
 
 # 2. Backend
 python -m venv venv
@@ -180,7 +180,7 @@ python scripts/seed_demo.py
 ## 🏗️ Technical Architecture
 
 ```
-pystreamflow-AI/
+pyfinflow-AI/
 ├── app/
 │   ├── api/              # FastAPI + routers (auth, transactions, budgets, goals, ai) + schemas
 │   ├── core/             # config, auth (bcrypt/JWT), database (SQLAlchemy), cache, metrics
@@ -318,7 +318,7 @@ pytest tests/unit/test_formatters.py -v
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL/SQLite connection string | `sqlite:///./pystreamflow_dev.db` |
+| `DATABASE_URL` | PostgreSQL/SQLite connection string | `sqlite:///./pyfinflow_dev.db` |
 | `JWT_SECRET` | Secret key for JWT tokens | `change-me-in-production` |
 | `OLLAMA_URL` | Ollama server URL | `http://localhost:11434` |
 | `HF_TOKEN` | HuggingFace token (optional) | - |
@@ -398,6 +398,6 @@ MIT License - See [LICENSE](LICENSE)
 
 ⭐ **If you like the project, give it a star!**
 
-Made with ❤️ by PyStreamFlow Team
+Made with ❤️ by PyFinFlow Team
 
 </div>

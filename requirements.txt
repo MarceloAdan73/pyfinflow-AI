@@ -1,4 +1,4 @@
-# PyStreamFlow - Gestión Financiera Personal
+# PyFinFlow - Gestión Financiera Personal
 # Python >= 3.10
 
 # Core Framework

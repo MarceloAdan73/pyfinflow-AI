@@ -1,5 +1,5 @@
 """
-Seed script para datos demo de PyStreamFlow-AI.
+Seed script para datos demo de PyFinFlow-AI.
 
 Uso:
     python scripts/seed_demo.py
@@ -312,7 +312,7 @@ def crear_configs(session, usuarios):
 
 def main():
     print("=" * 60)
-    print("  PyStreamFlow-AI — Seed de datos demo")
+    print("  PyFinFlow-AI — Seed de datos demo")
     print("=" * 60)
     print()
 

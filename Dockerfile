@@ -1,4 +1,4 @@
-# PyStreamFlow-AI - Multi-stage Docker build
+# PyFinFlow-AI - Multi-stage Docker build
 # Build stage
 FROM python:3.12-slim AS builder
 
@@ -31,9 +31,9 @@ COPY --from=builder /install /usr/local
 COPY . .
 
 # Create non-root user
-RUN useradd -m -u 1000 pystreamflow && \
-    chown -R pystreamflow:pystreamflow /app
-USER pystreamflow
+RUN useradd -m -u 1000 pyfinflow && \
+    chown -R pyfinflow:pyfinflow /app
+USER pyfinflow
 
 # Expose ports
 EXPOSE 8501 8000
@@ -42,5 +42,5 @@ EXPOSE 8501 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-# Default command: run both Streamlit and FastAPI
-CMD ["sh", "-c", "uvicorn app.api.main:app --host 0.0.0.0 --port 8000 & streamlit run pystreamflow.py --server.port 8501 --server.address 0.0.0.0"]
+# Default command: FastAPI only (frontend on Vercel)
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

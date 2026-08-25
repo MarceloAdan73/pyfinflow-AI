@@ -57,7 +57,7 @@ export function Logo({ className, markClassName, href, size = "md" }: LogoProps)
             sizes.text
           )}
         >
-          PyStreamFlow
+          PyFinFlow
         </span>
         <span
           className={cn(
