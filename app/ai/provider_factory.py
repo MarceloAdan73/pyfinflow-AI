@@ -72,6 +72,8 @@ class ProviderFactory:
             if provider.is_available():
                 try:
                     response = provider.chat(messages)
+                    if not response or not response.strip():
+                        raise ValueError("empty response from provider")
                     logger.info("ai_provider_success", provider=provider.name)
                     return response, provider.name
                 except Exception as e:

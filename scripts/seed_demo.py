@@ -14,11 +14,10 @@ Crea:
 La contraseña de ambos usuarios es: demo123
 """
 
-import uuid
 import random
 import sys
+import uuid
 from pathlib import Path
-from datetime import datetime, timedelta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -28,20 +27,18 @@ for stream in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
-from app.core.database import engine, init_db, get_db_session
-from app.core.models_db import (
-    Base,
-    User,
-    Transaction,
-    Budget,
-    Goal,
-    CustomCategory,
-    UserConfig,
-    ChatMessage,
-    AIProviderConfig,
-)
 from app.core.auth import hash_password
-from app.core.constants import CATEGORIAS
+from app.core.database import get_db_session, init_db
+from app.core.models_db import (
+    AIProviderConfig,
+    Budget,
+    ChatMessage,
+    CustomCategory,
+    Goal,
+    Transaction,
+    User,
+    UserConfig,
+)
 
 
 def generar_id(prefix: str) -> str:
@@ -76,7 +73,7 @@ def crear_usuarios(session):
 
     session.add_all(usuarios)
     session.flush()
-    print(f"  Usuarios creados: admin (ADMIN), demo (USER)")
+    print("  Usuarios creados: admin (ADMIN), demo (USER)")
     return usuarios
 
 

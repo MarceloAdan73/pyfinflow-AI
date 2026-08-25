@@ -99,6 +99,10 @@ target-version = "py310"
 select = ["E", "F", "I", "N", "W"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/seed_demo.py" = ["E402"]
+"alembic/**/*.py" = ["E402"]
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
