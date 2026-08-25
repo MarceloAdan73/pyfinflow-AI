@@ -1,0 +1,209 @@
+"use client";
+
+import { useState } from "react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select } from "@/components/ui/select";
+import { useBudgets } from "@/hooks/use-budgets";
+import { useBudgetAlerts } from "@/hooks/use-budget-alerts";
+import { useTransactions } from "@/hooks/use-transactions";
+import { formatMoney, getCurrentMonth } from "@/lib/utils";
+import type { BudgetCreate } from "@/types";
+import { Plus, AlertTriangle } from "lucide-react";
+import { useMemo } from "react";
+import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
+import { useTranslations } from "next-intl";
+
+const categorias = [
+  "Alimentación", "Transporte", "Servicios", "Ocio", "Salud",
+  "Educación", "Ropa", "Hogar", "Otros",
+];
+
+export default function BudgetsPage() {
+  const t = useTranslations("budgets");
+  const tc = useTranslations("common");
+  const currentMonth = getCurrentMonth();
+  const [mes, setMes] = useState(currentMonth);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { budgets, isLoading: budgetsLoading, createBudget } = useBudgets(mes);
+  const { transactions, isLoading: txnsLoading } = useTransactions({ fecha_inicio: `${mes}-01`, fecha_fin: `${mes}-31` });
+  const { alerts } = useBudgetAlerts(mes);
+
+  const [form, setForm] = useState<BudgetCreate>({
+    categoria: "Alimentación",
+    limite: 0,
+    mes: currentMonth,
+  });
+
+  const isLoading = budgetsLoading || txnsLoading;
+
+  const budgetsWithSpent = useMemo(() => {
+    const gastosByCategory: Record<string, number> = {};
+    transactions
+      .filter((tx) => tx.tipo === "Gasto")
+      .forEach((tx) => {
+        gastosByCategory[tx.categoria] = (gastosByCategory[tx.categoria] || 0) + tx.monto;
+      });
+
+    return budgets.map((b) => {
+      const gastado = gastosByCategory[b.categoria] || 0;
+      const porcentaje = b.limite > 0 ? (gastado / b.limite) * 100 : 0;
+      return { ...b, gastado, porcentaje, excedido: gastado > b.limite };
+    });
+  }, [budgets, transactions]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await createBudget({ ...form, mes });
+    setDialogOpen(false);
+  };
+
+  return (
+    <DashboardLayout>
+      <PageTransition>
+        <StaggerContainer className="space-y-6">
+          <StaggerItem>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="month"
+                  value={mes}
+                  onChange={(e) => setMes(e.target.value)}
+                  className="w-44"
+                />
+                <Button onClick={() => { setForm((f) => ({ ...f, mes })); setDialogOpen(true); }} className="gap-2">
+                  <Plus className="h-4 w-4" /> {t("new")}
+                </Button>
+              </div>
+            </div>
+          </StaggerItem>
+
+          {alerts.length > 0 && (
+            <StaggerItem>
+              <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <span className="font-semibold text-sm">
+                      {t("alertTitle", { count: alerts.length })}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {alerts.map((a) => (
+                      <Badge
+                        key={a.categoria}
+                        variant={a.excedido ? "destructive" : "secondary"}
+                        className={a.excedido ? "" : "bg-amber-500 text-white hover:bg-amber-600"}
+                      >
+                        {a.categoria}: {a.porcentaje.toFixed(0)}% ({formatMoney(a.gastado)}/{formatMoney(a.limite)})
+                        {a.excedido ? ` — ${t("exceeded")}` : ` — ${t("warning")}`}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          )}
+
+          <StaggerItem>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="pt-6 space-y-3">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-6 w-24" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : budgetsWithSpent.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {t("empty", { month: mes })}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {budgetsWithSpent.map((b) => (
+                  <Card key={b.id}>
+                    <CardContent className="pt-6 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{b.categoria}</h3>
+                        {b.porcentaje >= 80 && (
+                          <Badge variant={b.excedido ? "destructive" : "secondary"} className={`gap-1 ${!b.excedido ? "bg-amber-500 text-white hover:bg-amber-600" : ""}`}>
+                            <AlertTriangle className="h-3 w-3" /> {b.excedido ? t("exceeded") : t("warning")}
+                          </Badge>
+                        )}
+                      </div>
+                      <Progress
+                        value={Math.min(b.porcentaje, 100)}
+                        indicatorClassName={b.excedido ? "bg-destructive" : b.porcentaje > 80 ? "bg-amber-500" : "bg-primary"}
+                      />
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {formatMoney(b.gastado)} / {formatMoney(b.limite)}
+                        </span>
+                        <span className={`font-medium ${b.excedido ? "text-destructive" : "text-muted-foreground"}`}>
+                          {b.porcentaje.toFixed(0)}%
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </StaggerItem>
+        </StaggerContainer>
+      </PageTransition>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("newTitle")}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t("category")}</Label>
+              <Select
+                value={form.categoria}
+                onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value }))}
+              >
+                {categorias.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("limit")}</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.limite || ""}
+                onChange={(e) => setForm((f) => ({ ...f, limite: parseFloat(e.target.value) || 0 }))}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{tc("cancel")}</Button>
+              <Button type="submit">{tc("create")}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
+  );
+}

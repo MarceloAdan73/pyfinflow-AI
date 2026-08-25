@@ -2,6 +2,7 @@
 venv/
 env/
 ENV/
+.venv/
 
 # Python
 __pycache__/
@@ -9,12 +10,26 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+coverage.xml
 
 # Base de datos local
 *.db
+*.db-shm
+*.db-wal
+*.sqlite3
 
 # Token de HuggingFace
 .env
+.env.local
+.env.*.local
+
+# Alembic (contiene DB URL en texto plano)
+alembic.ini
 
 # Streamlit secrets
 .streamlit/
@@ -28,3 +43,21 @@ __pycache__/
 *.bak
 *.swp
 .DS_Store
+Thumbs.db
+
+# ChromaDB
+chroma_data/
+
+# Docker volumes
+logs/
+
+# MyPy
+.mypy_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Config local de opencode (agente + plan del proyecto - NO se pushea)
+.opencode/
