@@ -32,21 +32,22 @@
 
 | Aspecto | Estado actual |
 |---|---|
-| **App** | API REST FastAPI (frontend Streamlit legacy deprecado) |
-| **Frontend** | Next.js 16 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 + next-intl (es/en) |
+| **App** | PyFinFlow AI (ex PyStreamFlow) — API REST FastAPI + Next.js 16 |
+| **Frontend** | Next.js 16.2 + React 19 + TypeScript + Tailwind v4 + Framer Motion 12 + next-intl (es/en) |
 | **Backend** | FastAPI + SQLAlchemy + Repository Pattern + Alembic |
-| **DB** | PostgreSQL (producción) + SQLite (desarrollo/tests) — local usa `pystreamflow_dev.db` |
+| **DB** | PostgreSQL (producción) + SQLite (desarrollo/tests) — local usa `pyfinflow_dev.db` |
 | **IA** | ChromaDB + RAG + Multi-provider (Ollama/HuggingFace/Gemini) + memoria persistente + analytics predictivo + configuración per-user desde UI |
 | **Auth** | bcrypt (12 rounds) + JWT (access 1h / refresh 7d) + rate limiting + roles |
 | **API** | 28 endpoints REST documentados: /auth, /transactions, /budgets, /goals, /ai, /health |
-| **Tests** | 182 tests backend (todos pasan) + frontend: lint 0 errors + build 21/21 páginas SSG. Ruff: 0 errores |
+| **Tests** | 221 tests backend (todos pasan) + frontend: lint 0 errors + build 22/22 páginas SSG. Ruff: 0 errores |
 | **CI/CD** | GitHub Actions (Python 3.12, PostgreSQL service, ruff, pytest-cov) |
-| **Docker** | Dockerfile multi-stage + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
+| **Docker** | Dockerfile multi-stage (pyfinflow user, uvicorn only) + docker-compose (app, PostgreSQL, Redis, ChromaDB) |
 | **Monitoring** | structlog + request logging middleware + health check + métricas + alertas SMTP |
-| **Deploy actual** | Local (dev) — backend :8000, frontend :3000 |
-| **Deploy planeado** | Vercel (Next.js) + cualquier host para FastAPI |
-| **Branch** | `main` (producción), `dev` (desarrollo) — se trabaja siempre en `dev` |
-| **Último commit dev** | 24/08/2026 (branding + dark/light + rate limiting + lint 0) |
+| **Deploy actual** | Local (dev) — backend :8000, frontend :3000 — Streamlit Cloud eliminado 24/08/2026 |
+| **Deploy planeado** | **PRÓXIMO:** Vercel (frontend) + Render/Railway (FastAPI) → link público para acceso global |
+| **Branch** | `main`/`master` (producción), `dev` (desarrollo) — se trabaja siempre en `dev` |
+| **Repo** | `MarceloAdan73/pyfinflow-AI` (renombrado desde `pystreamflow-AI`, redirect activo) |
+| **Último commit dev** | 24/08/2026 (rebrand pyfinflow, README 221 tests, IA 4.9s, merge a main) |
 | **Cache** | Redis con fallback a in-memory. Sesiones TTL 1h, queries TTL 5min, rate limit TTL 60s |
 
 ### Decisiones técnicas clave (contexto)
@@ -87,17 +88,11 @@ Shadcn/UI no es una dependencia — copiás los componentes a tu proyecto. Venta
 - Basado en Radix UI (accessibilidad real, no solo visual)
 - Los mismos componentes que usan fintechs profesionales
 
-#### Convivencia: Streamlit + Next.js
-El monolito Streamlit se mantiene como:
-- **MVP funcional** para desarrollo rápido y testing
-- **Backup** si algo falla en Next.js
-- **Reference implementation** de la lógica de negocio
-
-Ambos frontends hablan con la misma API FastAPI:
-- `http://localhost:8501` → Streamlit legacy
-- `http://localhost:3000` → Next.js nuevo
-
-Cuando Next.js esté completo y probado, Streamlit se marca como deprecated pero no se elimina.
+#### Convivencia: Streamlit eliminado
+El monolito Streamlit (`pystreamflow.py`) fue eliminado en `c4a6f71` (24/08/2026) tras migrar a `PyFinFlow`. Ya no hay MVP Streamlit.
+- Deploy Streamlit Cloud `pystreamflow-ai-...streamlit.app` eliminado 24/08/2026
+- GitHub About Website limpiado
+- Stack actual único: `FastAPI` + `Next.js 16` en `http://localhost:8000` / `http://localhost:3000`
 
 ---
 
@@ -850,11 +845,17 @@ frontend/
 | Fase 7: i18n | ✅ Completada | 100% |
 | Fase 8: Features | 🟡 En curso | 45% (8.1a+b alertas + 8.2a+b import CSV) |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
-| Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
+| Fase 10: Lanzamiento | 🟡 **PRÓXIMO** | 0% → **Darle vida: deploy público para acceso global** |
 
 **Progreso total: ~82%** (Fases 0-7 + F8 45%)
 
-> **Próximo paso (Fase 8 + polish):** ~~darle funcionalidad real al modo dark/light~~ ✅ hecho 24/08/2026. Sigue: Fase 9 parcial (tests faltantes) → Fase 8.
+> **PRÓXIMO PASO — Darle vida al proyecto (Fase 10 — deploy público):**
+> Rebrand `PyFinFlow-AI` completo (`pyfinflow-AI` en GitHub, `pyfinflow_dev.db`, `221 tests`, `ruff 0`, `build 22/22`, IA `4.9s`). Streamlit Cloud eliminado.
+> **Objetivo próxima sesión:** Generar link público para que cualquiera acceda.
+> 1. **Backend → Render/Railway** `Dockerfile` `uvicorn` + Postgres + env `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production` → obtener `https://pyfinflow-api.onrender.com` + verificar `GET /health` y `/docs`
+> 2. **Frontend → Vercel** `frontend/` `Next.js 16` → env `NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com` → obtener `https://pyfinflow-ai.vercel.app`
+> 3. **Poner link en GitHub About Website + README Demo + crear Release `v2.0-demo` + tag**
+> 4. **Test e2e público:** register/login/demo123, crear txn, ver alerts, importar `assets/demo_import.csv`, chat IA
 >
 > **Sesión 24/08/2026:**
 > - ✅ Fix dark/light mode real (body sin `dark` hardcodeado, themeScript default dark, charts con CSS vars)
