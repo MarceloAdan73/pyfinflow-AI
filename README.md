@@ -2,14 +2,15 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
-![Plotly](https://img.shields.io/badge/Plotly-5.18+-3F4F25?style=for-the-badge&logo=plotly&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![CI](https://github.com/MarceloAdan73/pystreamflow-AI/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/codecov/c/github/MarceloAdan73/pystreamflow-AI?style=for-the-badge)
+
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-17%20passed-brightgreen?style=for-the-badge)
-![PWA](https://img.shields.io/badge/PWA-Ready-00A98F?style=for-the-badge)
-![Stars](https://img.shields.io/badge/Stars-⭐_bienvenido-orange?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-175%20passed-brightgreen?style=for-the-badge)
 
 **🚀 Personal finance management web app with integrated AI**
 
@@ -25,17 +26,19 @@
 |---------|-------------|
 | 🎯 **Smart** | Automatic amount detection (US/EU format) |
 | 📊 **Visual** | Interactive charts with Plotly |
-| 🤖 **AI** | Financial assistant with HuggingFace + local fallback |
-| 💾 **Persistent** | Local SQLite, no setup required |
-| 📱 **PWA** | Installable as mobile app |
-| 🔒 **Secure** | Optional authentication via Supabase |
-| 🧪 **Tested** | 17 unit tests passing |
+| 🤖 **AI** | Financial assistant with RAG + multi-provider (Ollama, HuggingFace, Gemini) |
+| 💾 **Persistent** | PostgreSQL (prod) + SQLite (dev) with Repository Pattern |
+| 🔒 **Secure** | bcrypt + JWT + rate limiting + role-based access |
+| 🧪 **Tested** | 175 tests passing (unit + integration) |
+| 📖 **Documented** | Full Swagger/ReDoc API documentation |
+| 🌍 **i18n** | Spanish, English, Portuguese |
+| 💱 **Multi-currency** | ARS, USD, EUR, BRL with live conversion |
 
 ---
 
 ## 📱 Demo
 
-**[🔗 Live App](https://pystreamflow-ai-ufg7wsp8pcxpatqt3lxrsk.streamlit.app/){:target="_blank"}** ↗️
+**[🔗 Live App](https://pystreamflow-ai-ufg7wsp8pcxpatqt3lxrsk.streamlit.app/)** ↗️
 
 ---
 
@@ -283,26 +286,31 @@ response = consultar_ia_local(question, context)
 
 ```bash
 # Run all tests
-pytest test_app.py -v
+pytest tests/ -v
 
-# Specific tests
-pytest test_app.py::test_detectar_moneda_simple -v
+# With coverage
+pytest tests/ -v --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/unit/test_formatters.py -v
 ```
 
-**Results:** 17 tests passing ✅
+**Results:** 175 tests passing ✅
 
-| Test | Status |
-|------|--------|
-| `test_detectar_moneda_simple` | ✅ |
-| `test_detectar_moneda_con_texto` | ✅ |
-| `test_detectar_moneda_con_comas` | ✅ |
-| `test_detectar_moneda_decimal` | ✅ |
-| `test_detectar_moneda_invalida` | ✅ |
-| `test_formatear_monto_ars` | ✅ |
-| `test_calcular_metricas_*` | ✅ |
-| `test_crear_transaccion` | ✅ |
-| `test_generar_id_formato` | ✅ |
-| `test_ciclo_completo_transaccion` | ✅ |
+| Module | Tests | Coverage |
+|--------|-------|----------|
+| `test_auth.py` | 18 | bcrypt, JWT, rate limiting, roles |
+| `test_api.py` | 30 | All REST endpoints (auth, transactions, budgets, goals, metrics) |
+| `test_ai_api.py` | 10 | AI endpoints (chat, history, insights, suggestions, status) |
+| `test_ai.py` | 30 | Providers, fallback, analytics, chat memory |
+| `test_repositories.py` | 13 | CRUD operations (users, transactions, budgets, goals) |
+| `test_formatters.py` | 22 | Number parsing, currency formatting, ID generation |
+| `test_vector_store.py` | 14 | ChromaDB indexing, search, deletion |
+| `test_rag_engine.py` | 5 | RAG pipeline, message building |
+| `test_alerts.py` | 5 | SMTP alerts, critical errors |
+| `test_config.py` | 11 | Settings types and defaults |
+| `test_cache.py` | 7 | Redis fallback, rate limiting |
+| `test_metrics.py` | 6 | Request tracking, Prometheus format |
 
 ---
 
@@ -310,31 +318,42 @@ pytest test_app.py::test_detectar_moneda_simple -v
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `HF_TOKEN` | HuggingFace token (cloud AI) | ❌ |
-| `SUPABASE_URL` | Supabase project URL | ❌ |
-| `SUPABASE_KEY` | Supabase API key | ❌ |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL/SQLite connection string | `sqlite:///./pystreamflow_dev.db` |
+| `JWT_SECRET` | Secret key for JWT tokens | `change-me-in-production` |
+| `OLLAMA_URL` | Ollama server URL | `http://localhost:11434` |
+| `HF_TOKEN` | HuggingFace token (optional) | - |
+| `GEMINI_API_KEY` | Google Gemini key (optional) | - |
+| `SMTP_HOST` | SMTP server for alerts | - |
+| `ALERT_EMAIL_TO` | Alert recipient email | - |
 
-### Usage Modes
+### Seed Demo Data
 
-| Mode | Description | Requires |
-|------|-------------|----------|
-| **Local** | SQLite + local data | ❌ Nothing |
-| **Cloud** | Supabase sync | ✅ Credentials |
-| **AI Cloud** | HuggingFace | ✅ HF Token |
-| **AI Local** | Basic responses | ❌ Nothing |
+```bash
+python scripts/seed_demo.py
+# Creates: 2 users (admin/demo), ~70 transactions, budgets, goals
+# Login: POST /auth/login → {"username": "demo", "password": "demo123"}
+```
+
+### API Documentation
+
+Once running, visit:
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
 
 ---
 
 ## 🔮 Roadmap
 
-- [ ] Multi-currency (USD, EUR)
-- [ ] Excel export
+- [x] Multi-currency (ARS, USD, EUR, BRL)
+- [x] API documentation (Swagger/ReDoc)
+- [x] Demo seed data
+- [x] 175 tests passing
+- [ ] Deploy to production (Vercel + Railway/Render)
+- [ ] PWA mode
+- [ ] Excel/CSV export
 - [ ] Push notifications
-- [ ] Native mobile app (React Native)
-- [ ] Bank integration (Open Banking)
-- [ ] Investment tracking
 
 ---
 
@@ -364,11 +383,15 @@ MIT License - See [LICENSE](LICENSE)
 
 ## 🙏 Acknowledgments
 
-- [Streamlit](https://streamlit.io/) - Web Framework
-- [Plotly](https://plotly.com/) - Visualization
+- [FastAPI](https://fastapi.tiangolo.com/) - REST API Framework
+- [Next.js](https://nextjs.org/) - Frontend Framework
+- [SQLAlchemy](https://www.sqlalchemy.org/) - ORM
+- [PostgreSQL](https://www.postgresql.org/) - Database
+- [ChromaDB](https://www.trychroma.com/) - Vector Store for RAG
+- [Ollama](https://ollama.ai/) - Local AI inference
 - [HuggingFace](https://huggingface.co/) - AI Models
-- [Supabase](https://supabase.com/) - Backend as a Service
-- [ReportLab](https://www.reportlab.com/) - PDFs
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Shadcn/UI](https://ui.shadcn.com/) - UI Components
 
 ---
 

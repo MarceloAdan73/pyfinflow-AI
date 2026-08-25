@@ -1,0 +1,10 @@
+fecha,tipo,monto,categoria,descripcion,moneda
+2026-07-01,Ingreso,500000,Salario,Sueldo julio,ARS
+2026-07-02,Gasto,15000,Alimentación,Supermercado,ARS
+2026-07-03,Gasto,8000,Transporte,Subte y colectivo,ARS
+2026-07-05,Gasto,12000,Servicios,Luz y gas,ARS
+2026-07-10,Gasto,25000,Ocio,Cena y cine,ARS
+2026-07-15,Ingreso,80000,Freelance,Proyecto web,ARS
+2026-07-18,Gasto,30000,Alimentación,Restaurante,ARS
+2026-08-01,Gasto,"1.500,50",Alimentación,Prueba EU,ARS
+19/08/2026,Gasto,20000,Transporte,Taxi,ARS
