@@ -732,7 +732,7 @@ frontend/
 
 ### 8.2 Integraciones
 - [ ] Webhook para Notion/Google Sheets
-- [ ] Importación desde archivos bancarios (CSV)
+- [x] Importación desde archivos bancarios (CSV) — `app/services/csv_import.py:1` + `POST /transactions/import` (2MB/1000 filas, EU/US, DD/MM/YYYY, alias headers, `;`/`,`) + frontend `useTransactions.importTransactions` + Dialog preview + `assets/demo_import.csv` (F8.2a+b 24/08/2026, 221 tests)
 - [ ] Conexión con Mercado Pago (API) para leer transacciones
 - [ ] Exportar a Google Finance / Excel
 
@@ -848,11 +848,11 @@ frontend/
 | Fase 5: IA Profesional | ✅ Completada | 100% |
 | Fase 6: Frontend | ✅ Completada | 100% |
 | Fase 7: i18n | ✅ Completada | 100% |
-| Fase 8: Features | 🟡 En curso | 25% (8.1a+b alertas presupuesto) |
+| Fase 8: Features | 🟡 En curso | 45% (8.1a+b alertas + 8.2a+b import CSV) |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
 | Fase 10: Lanzamiento | ⬜ No iniciada | 0% |
 
-**Progreso total: ~80%** (Fases 0-7 completadas + F8.1a+b)
+**Progreso total: ~82%** (Fases 0-7 + F8 45%)
 
 > **Próximo paso (Fase 8 + polish):** ~~darle funcionalidad real al modo dark/light~~ ✅ hecho 24/08/2026. Sigue: Fase 9 parcial (tests faltantes) → Fase 8.
 >
