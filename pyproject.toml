@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pystreamflow"
+name = "pyfinflow"
 version = "2.0.0"
 description = "Aplicación web interactiva para control de finanzas personales con IA"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "PyStreamFlow Team"}
+    {name = "PyFinFlow Team"}
 ]
 requires-python = ">=3.10"
 keywords = ["finance", "budget", "streamlit", "personal-finance", "money-management", "ai", "saas"]
@@ -69,11 +69,11 @@ all = [
 ]
 
 [project.scripts]
-pystreamflow = "pystreamflow:main"
+pyfinflow = "pyfinflow:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["pystreamflow*", "app*"]
+include = ["pyfinflow*", "app*"]
 
 [tool.black]
 line-length = 100

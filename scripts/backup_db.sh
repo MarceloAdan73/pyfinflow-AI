@@ -1,5 +1,5 @@
 #!/bin/bash
-# PyStreamFlow-AI - PostgreSQL Backup Script
+# PyFinFlow-AI - PostgreSQL Backup Script
 # Usage: ./scripts/backup_db.sh [output_dir]
 # Requires: pg_dump (PostgreSQL client), environment variables set
 
@@ -15,17 +15,17 @@ if [ -f "$PROJECT_DIR/.env" ]; then
     set +a
 fi
 
-: "${DATABASE_URL:=postgresql://postgres:postgres@localhost:5432/pystreamflow_dev}"
+: "${DATABASE_URL:=postgresql://postgres:postgres@localhost:5432/pyfinflow_dev}"
 : "${BACKUP_DIR:=${1:-$PROJECT_DIR/backups}}"
 : "${RETENTION_DAYS:=7}"
 
 mkdir -p "$BACKUP_DIR"
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="$BACKUP_DIR/pystreamflow_$TIMESTAMP.sql"
+BACKUP_FILE="$BACKUP_DIR/pyfinflow_$TIMESTAMP.sql"
 BACKUP_GZ="$BACKUP_FILE.gz"
 
-echo "=== PyStreamFlow Backup ==="
+echo "=== PyFinFlow Backup ==="
 echo "Database: $DATABASE_URL"
 echo "Output: $BACKUP_GZ"
 echo ""
@@ -60,7 +60,7 @@ echo "Size: $(ls -lh "$BACKUP_GZ" | awk '{print $5}')"
 # Cleanup old backups
 echo ""
 echo "Cleaning backups older than $RETENTION_DAYS days..."
-find "$BACKUP_DIR" -name "pystreamflow_*.sql.gz" -mtime "+$RETENTION_DAYS" -delete
-find "$BACKUP_DIR" -name "pystreamflow_*.sql" -mtime "+$RETENTION_DAYS" -delete
+find "$BACKUP_DIR" -name "pyfinflow_*.sql.gz" -mtime "+$RETENTION_DAYS" -delete
+find "$BACKUP_DIR" -name "pyfinflow_*.sql" -mtime "+$RETENTION_DAYS" -delete
 
 echo "Done."

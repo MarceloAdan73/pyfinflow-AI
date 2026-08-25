@@ -48,6 +48,6 @@ def test_metrics_prometheus_format():
     m.record_user_activity("user_1")
     text = m.get_prometheus_text()
     assert text.startswith("# HELP")
-    assert "pystreamflow_uptime_seconds" in text
-    assert "pystreamflow_requests_per_minute" in text
-    assert "pystreamflow_active_users" in text
+    assert "pyfinflow_uptime_seconds" in text
+    assert "pyfinflow_requests_per_minute" in text
+    assert "pyfinflow_active_users" in text

@@ -405,4 +405,4 @@ def test_metrics_prometheus(client):
     response = client.get("/metrics/prometheus")
     assert response.status_code == 200
     assert response.text.startswith("# HELP")
-    assert "pystreamflow_uptime_seconds" in response.text
+    assert "pyfinflow_uptime_seconds" in response.text

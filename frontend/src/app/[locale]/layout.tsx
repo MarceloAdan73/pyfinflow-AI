@@ -10,7 +10,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: "PyStreamFlow AI",
+  title: "PyFinFlow AI",
   description: "Gestión financiera personal inteligente con IA",
 };
 

@@ -16,11 +16,11 @@ logger = structlog.get_logger()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from app.core.database import init_db
-    logger.info("startup", message="PyStreamFlow API starting", version="2.0.0")
+    logger.info("startup", message="PyFinFlow API starting", version="2.0.0")
     init_db()
     logger.info("startup", message="Database tables ensured")
     yield
-    logger.info("shutdown", message="PyStreamFlow API shutting down")
+    logger.info("shutdown", message="PyFinFlow API shutting down")
 
 
 OPENAPI_TAGS = [
@@ -51,7 +51,7 @@ OPENAPI_TAGS = [
 ]
 
 app = FastAPI(
-    title="PyStreamFlow API",
+    title="PyFinFlow API",
     description=(
         "API REST para gestión de finanzas personales con inteligencia artificial.\n\n"
         "## Funcionalidades\n"
@@ -67,8 +67,8 @@ app = FastAPI(
     lifespan=lifespan,
     openapi_tags=OPENAPI_TAGS,
     contact={
-        "name": "PyStreamFlow Team",
-        "url": "https://github.com/MarceloAdan73/pystreamflow-AI",
+        "name": "PyFinFlow Team",
+        "url": "https://github.com/MarceloAdan73/pyfinflow-AI",
     },
     license_info={
         "name": "MIT",

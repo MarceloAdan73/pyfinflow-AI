@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "PyStreamFlow",
+    "appName": "PyFinFlow",
     "loading": "Loading...",
     "save": "Save",
     "saved": "Saved",
@@ -36,7 +36,7 @@
   "auth": {
     "login": {
       "title": "Sign In",
-      "description": "Access your PyStreamFlow account",
+      "description": "Access your PyFinFlow account",
       "username": "Username",
       "usernamePlaceholder": "Your username",
       "password": "Password",

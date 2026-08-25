@@ -69,21 +69,21 @@ class MetricsCollector:
     def get_prometheus_text(self) -> str:
         metrics = self.get_metrics()
         lines = [
-            "# HELP pystreamflow_uptime_seconds Uptime in seconds",
-            f"pystreamflow_uptime_seconds {metrics['uptime_seconds']}",
-            "# HELP pystreamflow_requests_per_minute Requests in the last minute",
-            f"pystreamflow_requests_per_minute {metrics['requests_per_minute']}",
-            "# HELP pystreamflow_active_users Current active users",
-            f"pystreamflow_active_users {metrics['active_users']}",
-            "# HELP pystreamflow_ai_avg_latency_ms Average AI response latency",
-            f"pystreamflow_ai_avg_latency_ms {metrics['ai_avg_latency_ms']}",
-            "# HELP pystreamflow_ai_total_calls Total AI calls",
-            f"pystreamflow_ai_total_calls {metrics['ai_total_calls']}",
+            "# HELP pyfinflow_uptime_seconds Uptime in seconds",
+            f"pyfinflow_uptime_seconds {metrics['uptime_seconds']}",
+            "# HELP pyfinflow_requests_per_minute Requests in the last minute",
+            f"pyfinflow_requests_per_minute {metrics['requests_per_minute']}",
+            "# HELP pyfinflow_active_users Current active users",
+            f"pyfinflow_active_users {metrics['active_users']}",
+            "# HELP pyfinflow_ai_avg_latency_ms Average AI response latency",
+            f"pyfinflow_ai_avg_latency_ms {metrics['ai_avg_latency_ms']}",
+            "# HELP pyfinflow_ai_total_calls Total AI calls",
+            f"pyfinflow_ai_total_calls {metrics['ai_total_calls']}",
         ]
         for code, count in metrics["status_code_distribution"].items():
-            lines.append(f'pystreamflow_http_requests_total{{status="{code}"}} {count}')
+            lines.append(f'pyfinflow_http_requests_total{{status="{code}"}} {count}')
         for error_type, count in metrics["errors"].items():
-            lines.append(f'pystreamflow_errors_total{{type="{error_type}"}} {count}')
+            lines.append(f'pyfinflow_errors_total{{type="{error_type}"}} {count}')
         return "\n".join(lines)
 
 
