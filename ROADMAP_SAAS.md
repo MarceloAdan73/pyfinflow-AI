@@ -851,9 +851,17 @@ frontend/
 
 > **PRÓXIMO PASO — Darle vida al proyecto (Fase 10 — deploy público):**
 > Rebrand `PyFinFlow-AI` completo (`pyfinflow-AI` en GitHub, `pyfinflow_dev.db`, `221 tests`, `ruff 0`, `build 22/22`, IA `4.9s`). Streamlit Cloud eliminado.
-> **Objetivo próxima sesión:** Generar link público para que cualquiera acceda.
-> 1. **Backend → Render/Railway** `Dockerfile` `uvicorn` + Postgres + env `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production` → obtener `https://pyfinflow-api.onrender.com` + verificar `GET /health` y `/docs`
-> 2. **Frontend → Vercel** `frontend/` `Next.js 16` → env `NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com` → obtener `https://pyfinflow-ai.vercel.app`
+> **Objetivo próximas sesiones:** Generar link público para que cualquiera acceda.
+>
+> **Sesión 29/08/2026 — preparación de deploy lista (backend):**
+> - ✅ `requirements-prod.txt` liviano (sin streamlit/chromadb/sentence-transformers/scikit-learn — imports lazy, no afectan la API)
+> - ✅ CORS configurable: `CORS_ORIGINS` env var (`config.py` + `main.py`, default localhost)
+> - ✅ `render.yaml` blueprint: servicio web (buildpack nativo) + PostgreSQL gratis, `JWT_SECRET` auto-generado, `CORS_ORIGINS` apuntando a Vercel
+> - ✅ README con guía paso a paso (Render → Vercel)
+>
+> **Pendiente de hacer (necesita acciones de Marcelo en Render/Vercel):**
+> 1. **Backend → Render** Blueprint → `render.yaml` → URL `https://pyfinflow-api.onrender.com` + verificar `/health` y `/docs`
+> 2. **Frontend → Vercel** `frontend/` → env `NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com` → `https://pyfinflow-ai.vercel.app`
 > 3. **Poner link en GitHub About Website + README Demo + crear Release `v2.0-demo` + tag**
 > 4. **Test e2e público:** register/login/demo123, crear txn, ver alerts, importar `assets/demo_import.csv`, chat IA
 >
