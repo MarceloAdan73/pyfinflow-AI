@@ -14,6 +14,13 @@ class Settings:
     JWT_SECRET: str = os.getenv("JWT_SECRET", "change-me-in-production")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
+    # Orígenes CORS permitidos (separados por coma). En producción setear
+    # CORS_ORIGINS=https://pyfinflow-ai.vercel.app,https://pyfinflow-ai.vercel.app/en
+    CORS_ORIGINS: str = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:8501,http://localhost:3000",
+    )
+
     SQLALCHEMY_DATABASE_URL = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {

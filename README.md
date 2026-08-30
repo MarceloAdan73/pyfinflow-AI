@@ -169,11 +169,50 @@ npm run dev
 python scripts/seed_demo.py
 ```
 
-### 🚀 Deploy
+### 🚀 Deploy público
 
-* **Frontend:** Vercel (`frontend/` → Next.js 16)
-* **Backend:** Render/Railway/Fly (`uvicorn app.api.main:app --host 0.0.0.0`)
-* **Legacy Streamlit** deprecado (no recomendado)
+Stack de producción: **Backend → Render** (FastAPI + PostgreSQL) · **Frontend → Vercel** (Next.js).
+
+#### Paso 1 — Backend en Render
+
+1. Subir a la rama `main` los archivos: `requirements-prod.txt` y `render.yaml`
+2. En Render → **New** → **Blueprint** → conectar el repo
+3. Render provisiona automáticamente el servicio web + PostgreSQL (usa `render.yaml`)
+4. Copiar la URL del servicio, ej. `https://pyfinflow-api.onrender.com`
+5. Opcional — activar IA cloud en Render:
+   - En el servicio, **Environment** → agregar `HF_TOKEN` y/o `GEMINI_API_KEY`
+   - `AI_PROVIDER_PRIORITY=huggingface,gemini` (ya viene en `render.yaml`)
+
+Verificar: `GET https://pyfinflow-api.onrender.com/health` y `/docs`
+
+#### Paso 2 — Frontend en Vercel
+
+1. En Vercel → **Add New Project** → importar `frontend/`
+2. Framework preset: **Next.js** (Vercel lo detecta solo)
+3. En **Environment Variables**:
+   ```
+   NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com
+   ```
+4. Deploy → obtienes `https://pyfinflow-ai.vercel.app`
+
+> El `next.config.ts` tiene un rewrite a `localhost:8000` solo para desarrollo local.
+> En producción el frontend llama al backend directo vía `NEXT_PUBLIC_API_URL`,
+> así que no hace falta tocar nada del config para el deploy.
+
+#### Paso 3 — CORS (configuración automática)
+
+El backend ya lee `CORS_ORIGINS` desde el entorno. `render.yaml` lo setea a
+`https://pyfinflow-ai.vercel.app`. Si cambió la URL de Vercel, actualizar esa var.
+
+#### Paso 4 — Test público
+
+1. `register` + login (demo123)
+2. Crear una transacción
+3. Ver alertas de presupuesto
+4. Importar `assets/demo_import.csv`
+5. Chatear con la IA (si configuraste cloud keys)
+
+**Legacy Streamlit** deprecado (no recomendado).
 
 ---
 

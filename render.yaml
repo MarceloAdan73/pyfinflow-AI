@@ -1,0 +1,47 @@
+# PyFinFlow - Blueprint de deploy para Render
+# Backend FastAPI (buildpack nativo, requirements-prod.txt liviano)
+#
+# Cómo usar:
+#   1. Subir este archivo a la rama `dev`/`main` del repo
+#   2. En Render: "New" -> "Blueprint" -> conectar el repo
+#   3. Render provisiona el servicio web + PostgreSQL automáticamente
+#   4. Verificar en el Dashboard: tienes la URL https://pyfinflow-api.onrender.com
+#   5. Deletrear AI_PROVIDER_PRIORITY a solo providers cloud (huggingface,gemini)
+#      o dejar ollama (quedará inaccesible desde la nube, fallback automático)
+
+databases:
+  - name: pyfinflow-db
+    databaseName: pyfinflow
+    user: pyfinflow
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: pyfinflow-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements-prod.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pyfinflow-db
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://pyfinflow-ai.vercel.app,https://pyfinflow-ai.vercel.app/en
+      - key: REDIS_URL
+        value: ""
+      - key: AI_PROVIDER_PRIORITY
+        value: huggingface,gemini
+      - key: HF_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_RATE_LIMIT_PER_MIN
+        value: "30"
