@@ -132,6 +132,9 @@
 
 ### 🎨 UI/UX
 - ✅ **Responsive** design (mobile + desktop)
+- ✅ **Mobile-first navigation**: sidebar lateral en escritorio (`≥1024px`) y **bottom tab bar** + header limpio en móvil/tablet (`<1024px`)
+- ✅ Mobile: header simplificado (logo + ajustes) con barra de navegación inferior de 5 destinos (Inicio, Transacciones, Presupuestos, Metas, Chat)
+- ✅ Headers de página y filtros que se apilan en pantallas pequeñas (sin desbordes horizontales)
 - ✅ **Animations** micro-interactions
 - ✅ **Onboarding** tutorial
 - ✅ Skeleton loaders
