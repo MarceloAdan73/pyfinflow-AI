@@ -33,7 +33,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen border-r border-border bg-card/50 backdrop-blur-xl p-4 fixed left-0 top-0 z-40">
+    <aside className="hidden lg:flex flex-col w-64 h-screen border-r border-border bg-card/50 backdrop-blur-xl p-4 fixed left-0 top-0 z-40">
       <div className="mb-8 px-2">
         <Logo href={`/${locale}/dashboard`} size="md" />
       </div>

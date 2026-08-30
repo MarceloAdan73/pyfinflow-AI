@@ -39,7 +39,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="md:hidden sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
+      <header className="lg:hidden sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <Logo href={`/${locale}/dashboard`} size="sm" />
         </div>
@@ -50,7 +50,7 @@ export function Navbar() {
       </header>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
