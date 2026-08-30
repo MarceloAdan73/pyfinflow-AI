@@ -21,6 +21,10 @@ class Settings:
         "http://localhost:8501,http://localhost:3000",
     )
 
+    # Permitir alta de cuentas públicas. En demo público (production) deshabilitar
+    # para evitar usuarios basura en la DB. Default true (dev/tests).
+    ALLOW_REGISTRATION: bool = os.getenv("ALLOW_REGISTRATION", "true").lower() in ("1", "true", "yes")
+
     SQLALCHEMY_DATABASE_URL = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {

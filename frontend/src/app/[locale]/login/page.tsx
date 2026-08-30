@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -123,12 +122,6 @@ export default function LoginPage() {
               )}
             </Button>
             <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("noAccount")}{" "}
-              <Link href={`/${locale}/register`} className="text-primary hover:underline">
-                {t("register")}
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>

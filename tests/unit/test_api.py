@@ -80,7 +80,12 @@ def test_register_short_password(client):
     assert response.status_code == 422
 
 
-# ============================
+def test_register_deshabilitado_en_produccion(client, monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ALLOW_REGISTRATION", False)
+    response = client.post("/auth/register", json={"username": "blocked", "password": "testpass123"})
+    assert response.status_code == 403# ============================
 # AUTH: LOGIN
 # ============================
 

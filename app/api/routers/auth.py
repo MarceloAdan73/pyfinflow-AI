@@ -22,6 +22,7 @@ from app.core.auth import (
     verificar_password,
     verificar_refresh_token,
 )
+from app.core.config import settings
 from app.core.metrics import metrics_collector
 from app.repositories.factory import RepositoryFactory
 
@@ -46,7 +47,15 @@ def register(
     - **password**: mínimo 6 caracteres, hasheado con bcrypt (12 rounds)
 
     Si el usuario ya existe, retorna 409 Conflict.
+    En producción (`ALLOW_REGISTRATION=false`) el registro público está
+    deshabilitado: se devuelve 403 y el acceso es vía `/auth/demo`.
     """
+    if not settings.ALLOW_REGISTRATION:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="El registro está deshabilitado en esta demostración. Usá el acceso de demostración.",
+        )
+
     existing = repos.users.get_by_username(data.username)
     if existing:
         raise HTTPException(
