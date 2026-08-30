@@ -10,7 +10,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-221%20passed-brightgreen?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-224%20passed-brightgreen?style=for-the-badge)
 
 **🚀 Personal finance management web app with integrated AI**
 
@@ -29,7 +29,7 @@
 | 🤖 **AI** | Financial assistant with RAG + multi-provider (Ollama, HuggingFace, Gemini) |
 | 💾 **Persistent** | PostgreSQL (prod) + SQLite (dev) with Repository Pattern |
 | 🔒 **Secure** | bcrypt + JWT + rate limiting + role-based access |
-| 🧪 **Tested** | 221 tests passing (unit + integration) |
+| 🧪 **Tested** | 224 tests passing (unit + integration) |
 | 📖 **Documented** | Full Swagger/ReDoc API documentation |
 | 🌍 **i18n** | Spanish, English |
 | 💱 **Multi-currency** | ARS, USD, EUR, BRL with live conversion |
@@ -38,8 +38,19 @@
 
 ## 📱 Demo
 
-> **Demo actual:** local (`http://localhost:3000` + `http://localhost:8000/docs`) — deploy público Vercel/Render pendiente (Fase 10).
-> Legacy Streamlit: `https://pystreamflow-ai-ufg7wsp8pcxpatqt3lxrsk.streamlit.app/` (deprecado).
+> **🚀 Demo público en vivo:**
+
+| Link | URL |
+|------|-----|
+| 🖥️ **Aplicación web** | [https://pyfinflow-ai.vercel.app](https://pyfinflow-ai.vercel.app) |
+| 🔌 **API (Swagger)** | [https://pyfinflow-api.onrender.com/docs](https://pyfinflow-api.onrender.com/docs) |
+| ❤️ **Health check** | [https://pyfinflow-api.onrender.com/health](https://pyfinflow-api.onrender.com/health) |
+
+> **Para probar sin registrarte:** al entrar clickeá **"Explorar demo"** — ingresás al instante a una cuenta demo con transacciones, presupuestos y metas de ejemplo (el registro público está deshabilitado en el demo).
+>
+> Para desarrollo local: `http://localhost:3000` (frontend) + `http://localhost:8000/docs` (API).
+
+![Demo](https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-success?style=for-the-badge)
 
 ---
 
