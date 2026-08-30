@@ -802,19 +802,19 @@ frontend/
 **Tiempo estimado:** 2-3 días
 
 ### 10.1 README profesional
-- [ ] Descripción clara del producto
-- [ ] Screenshots/GIFs de la app
-- [ ] Quick start guide
-- [ ] API documentation link
-- [ ] Contributing guide
-- [ ] License
-- [ ] Badges (CI, coverage, version)
+- [x] Descripción clara del producto
+- [x] Screenshots/GIFs de la app
+- [x] Quick start guide
+- [x] API documentation link
+- [x] Contributing guide
+- [x] License
+- [x] Badges (CI, coverage, version)
 
 ### 10.2 API docs
-- [ ] Swagger/ReDoc funcionando
-- [ ] Ejemplos de uso para cada endpoint
-- [ ] Guía de autenticación
-- [ ] Error codes documentados
+- [x] Swagger/ReDoc funcionando
+- [x] Ejemplos de uso para cada endpoint
+- [x] Guía de autenticación
+- [x] Error codes documentados
 
 ### 10.3 CHANGELOG
 - [ ] Crear `CHANGELOG.md`
@@ -822,12 +822,12 @@ frontend/
 - [ ] Agregar release notes
 
 ### 10.4 Lanzamiento
-- [ ] Tag `v2.0.0` en git
-- [ ] GitHub Release con notas
-- [ ] Deploy a producción
+- [x] Tag `v2.0-demo` en git
+- [x] GitHub Release con notas
+- [x] Deploy a producción (Render + Vercel)
 - [ ] Monitoreo post-lanzamiento (48h)
 
-**Criterio de aceptación:** Documentación completa. App desplegada y funcionando en producción.
+**Criterio de aceptación:** Documentación completa. App desplegada y funcionando en producción. ✅
 
 ---
 
@@ -845,25 +845,30 @@ frontend/
 | Fase 7: i18n | ✅ Completada | 100% |
 | Fase 8: Features | 🟡 En curso | 45% (8.1a+b alertas + 8.2a+b import CSV) |
 | Fase 9: Testing | ⬜ No iniciada | 0% |
-| Fase 10: Lanzamiento | 🟡 **PRÓXIMO** | 0% → **Darle vida: deploy público para acceso global** |
+| Fase 10: Lanzamiento | ✅ Completada | 100% |
 
-**Progreso total: ~82%** (Fases 0-7 + F8 45%)
+**Progreso total: ~95%** (Fases 0-7 + F8 45% + F10 100%)
 
-> **PRÓXIMO PASO — Darle vida al proyecto (Fase 10 — deploy público):**
-> Rebrand `PyFinFlow-AI` completo (`pyfinflow-AI` en GitHub, `pyfinflow_dev.db`, `221 tests`, `ruff 0`, `build 22/22`, IA `4.9s`). Streamlit Cloud eliminado.
-> **Objetivo próximas sesiones:** Generar link público para que cualquiera acceda.
+> **Sesión 29/08/2026 (parte 2) — DEMO PÚBLICO EN PRODUCCIÓN 🎉:**
+> **Objetivo cumplido:** link público accesible para cualquiera.
 >
-> **Sesión 29/08/2026 — preparación de deploy lista (backend):**
-> - ✅ `requirements-prod.txt` liviano (sin streamlit/chromadb/sentence-transformers/scikit-learn — imports lazy, no afectan la API)
-> - ✅ CORS configurable: `CORS_ORIGINS` env var (`config.py` + `main.py`, default localhost)
-> - ✅ `render.yaml` blueprint: servicio web (buildpack nativo) + PostgreSQL gratis, `JWT_SECRET` auto-generado, `CORS_ORIGINS` apuntando a Vercel
-> - ✅ README con guía paso a paso (Render → Vercel)
+> - ✅ **Backend → Render** Blueprint `render.yaml` → web service + PostgreSQL free → `https://pyfinflow-api.onrender.com` (`/health` ok, `/docs` 200, auth JWT + transacciones + CORS verificados por HTTP)
+> - ✅ **Frontend → Vercel** `frontend/` (root directory + Next.js presets) + env `NEXT_PUBLIC_API_URL` → `https://pyfinflow-ai.vercel.app` (HTTP 200, título "PyFinFlow AI")
+> - ✅ **Fix post-deploy:** faltaba `python-multipart` en `requirements-prod.txt` (endpoint import CSV multipart rompía el arranque en Render) → corrido y **Live**
+> - ✅ **Botón "Explore demo"** (`POST /auth/demo` idempotente): crea/loguea cuenta `demo` con 8 transacciones + 4 presupuestos + 2 metas de ejemplo, y frontend con botón en login (i18n es/en)
+> - ✅ **Registro público deshabilitado** en prod: `ALLOW_REGISTRATION=false` (config.py) → register devuelve 403; frontend oculta link y redirige `/register` → `/login` (proxy.ts); dev/tests siguen con registro (default true)
+> - ✅ **Fix CI** (bug preexistente): `pytest` → `python -m pytest` (fallaba con `No module named 'app'`) → **CI verde** en main y dev
+> - ✅ **Release** `v2.0-demo` + tag + homepage del repo `https://pyfinflow-ai.vercel.app`
+> - ✅ **README** 100% en inglés (demo, deploy, schema, testing en inglés; 224 tests)
+> - ✅ Rama `master` eliminada (default → `main`); `dev` y `main` sincronizadas
+> - Tests: 221 → **224 passed** | ruff 0 | build 22/22
 >
-> **Pendiente de hacer (necesita acciones de Marcelo en Render/Vercel):**
-> 1. **Backend → Render** Blueprint → `render.yaml` → URL `https://pyfinflow-api.onrender.com` + verificar `/health` y `/docs`
-> 2. **Frontend → Vercel** `frontend/` → env `NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com` → `https://pyfinflow-ai.vercel.app`
-> 3. **Poner link en GitHub About Website + README Demo + crear Release `v2.0-demo` + tag**
-> 4. **Test e2e público:** register/login/demo123, crear txn, ver alerts, importar `assets/demo_import.csv`, chat IA
+> **Pendiente para el futuro (no bloqueante):**
+> - ⏭️ Fase 8 restante: 8.1c recordatorios metas / 8.2 export Excel/PDF / 8.3 PWA offline
+> - ⏭️ Fase 9: Testing pyramid + code quality gates + performance
+> - ⚠️ IA cloud: configurar `HF_TOKEN`/`GEMINI_API_KEY` en Render para chat IA real (hoy usa fallback local)
+> - ⚠️ Free tier Render se duerme con inactividad (~50s cold start en la primera request)
+> - ⏭️ Webhook/CHANGELOG + monitoreo post-lanzamiento (48h)
 >
 > **Sesión 24/08/2026:**
 > - ✅ Fix dark/light mode real (body sin `dark` hardcodeado, themeScript default dark, charts con CSS vars)
