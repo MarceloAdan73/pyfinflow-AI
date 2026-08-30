@@ -38,17 +38,17 @@
 
 ## 📱 Demo
 
-> **🚀 Demo público en vivo:**
+> **🚀 Live public demo:**
 
 | Link | URL |
 |------|-----|
-| 🖥️ **Aplicación web** | [https://pyfinflow-ai.vercel.app](https://pyfinflow-ai.vercel.app) |
+| 🖥️ **Web app** | [https://pyfinflow-ai.vercel.app](https://pyfinflow-ai.vercel.app) |
 | 🔌 **API (Swagger)** | [https://pyfinflow-api.onrender.com/docs](https://pyfinflow-api.onrender.com/docs) |
 | ❤️ **Health check** | [https://pyfinflow-api.onrender.com/health](https://pyfinflow-api.onrender.com/health) |
 
-> **Para probar sin registrarte:** al entrar clickeá **"Explorar demo"** — ingresás al instante a una cuenta demo con transacciones, presupuestos y metas de ejemplo (el registro público está deshabilitado en el demo).
+> **To try it without signing up:** open the app and click **"Explore demo"** — you instantly get a demo account with sample transactions, budgets and goals (public registration is disabled in the demo).
 >
-> Para desarrollo local: `http://localhost:3000` (frontend) + `http://localhost:8000/docs` (API).
+> For local development: `http://localhost:3000` (frontend) + `http://localhost:8000/docs` (API).
 
 ![Demo](https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-success?style=for-the-badge)
 
@@ -76,21 +76,21 @@
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│   │   INGRESOS   │  │    GASTOS    │  │   BALANCE    │    │
+│   │   INCOME     │  │   EXPENSES   │  │   BALANCE    │    │
 │   │  $ 150,000   │  │   $ 45,000   │  │  $ 105,000   │    │
 │   └──────────────┘  └──────────────┘  └──────────────┘    │
 │                                                             │
-│   📈 Evolución de Gastos    |    🍰 Por Categoría         │
+│   📈 Expense Trends    |    🍰 By Category                │
 │   ┌──────────────────┐      |    ┌──────────────────┐     │
 │   │  ▓▓▓▓▓▓░░░░░░    │      │    │   ████░░░░░░    │     │
 │   │  ▓▓▓▓▓▓▓▓░░░░    │      │    │   ██████░░░░    │     │
 │   └──────────────────┘      |    └──────────────────┘     │
 │                                                             │
-│   📝 Transacciones Recientes                              │
+│   📝 Recent Transactions                                  │
 │   ┌─────────────────────────────────────────────────────┐│
-│   │ 🟢 Salario        $ 80,000    15/03/2024            ││
-│   │ 🔴 Supermercado   $ 15,000    14/03/2024            ││
-│   │ 🔴 Transporte     $ 5,000     14/03/2024            ││
+│   │ 🟢 Salary          $ 80,000    15/03/2024            ││
+│   │ 🔴 Supermarket     $ 15,000    14/03/2024            ││
+│   │ 🔴 Transport       $ 5,000     14/03/2024            ││
 │   └─────────────────────────────────────────────────────┘│
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -150,7 +150,7 @@
 
 ### Requirements
 - Python 3.12+ / Node 20+
-- PostgreSQL 16 (opcional, SQLite por defecto) + pip + npm
+- PostgreSQL 16 (optional, SQLite by default) + pip + npm
 
 ### Step by step
 
@@ -166,7 +166,7 @@ venv\Scripts\activate
 # macOS/Linux
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # configurar DATABASE_URL, JWT_SECRET, OLLAMA_URL
+cp .env.example .env  # configure DATABASE_URL, JWT_SECRET, OLLAMA_URL
 uvicorn app.api.main:app --reload --port 8000
 # Swagger: http://localhost:8000/docs
 
@@ -174,56 +174,56 @@ uvicorn app.api.main:app --reload --port 8000
 cd frontend
 npm install
 npm run dev
-# App: http://localhost:3000 (login: demo/demo123)
+# App: http://localhost:3000
 
-# 4. Datos demo (opcional)
+# 4. Demo data (optional)
 python scripts/seed_demo.py
 ```
 
-### 🚀 Deploy público
+### 🚀 Public deploy
 
-Stack de producción: **Backend → Render** (FastAPI + PostgreSQL) · **Frontend → Vercel** (Next.js).
+Production stack: **Backend → Render** (FastAPI + PostgreSQL) · **Frontend → Vercel** (Next.js).
 
-#### Paso 1 — Backend en Render
+#### Step 1 — Backend on Render
 
-1. Subir a la rama `main` los archivos: `requirements-prod.txt` y `render.yaml`
-2. En Render → **New** → **Blueprint** → conectar el repo
-3. Render provisiona automáticamente el servicio web + PostgreSQL (usa `render.yaml`)
-4. Copiar la URL del servicio, ej. `https://pyfinflow-api.onrender.com`
-5. Opcional — activar IA cloud en Render:
-   - En el servicio, **Environment** → agregar `HF_TOKEN` y/o `GEMINI_API_KEY`
-   - `AI_PROVIDER_PRIORITY=huggingface,gemini` (ya viene en `render.yaml`)
+1. Push to the `main` branch the files: `requirements-prod.txt` and `render.yaml`
+2. On Render → **New** → **Blueprint** → connect the repo
+3. Render automatically provisions the web service + PostgreSQL (uses `render.yaml`)
+4. Copy the service URL, e.g. `https://pyfinflow-api.onrender.com`
+5. Optional — enable cloud AI on Render:
+   - In the service, **Environment** → add `HF_TOKEN` and/or `GEMINI_API_KEY`
+   - `AI_PROVIDER_PRIORITY=huggingface,gemini` (already in `render.yaml`)
 
-Verificar: `GET https://pyfinflow-api.onrender.com/health` y `/docs`
+Verify: `GET https://pyfinflow-api.onrender.com/health` and `/docs`
 
-#### Paso 2 — Frontend en Vercel
+#### Step 2 — Frontend on Vercel
 
-1. En Vercel → **Add New Project** → importar `frontend/`
-2. Framework preset: **Next.js** (Vercel lo detecta solo)
-3. En **Environment Variables**:
+1. On Vercel → **Add New Project** → import `frontend/`
+2. Framework preset: **Next.js** (Vercel auto-detects it)
+3. **Environment Variables**:
    ```
    NEXT_PUBLIC_API_URL=https://pyfinflow-api.onrender.com
    ```
-4. Deploy → obtienes `https://pyfinflow-ai.vercel.app`
+4. Deploy → you get `https://pyfinflow-ai.vercel.app`
 
-> El `next.config.ts` tiene un rewrite a `localhost:8000` solo para desarrollo local.
-> En producción el frontend llama al backend directo vía `NEXT_PUBLIC_API_URL`,
-> así que no hace falta tocar nada del config para el deploy.
+> `next.config.ts` has a rewrite to `localhost:8000` only for local development.
+> In production the frontend calls the backend directly via `NEXT_PUBLIC_API_URL`,
+> so no config changes are needed for the deploy.
 
-#### Paso 3 — CORS (configuración automática)
+#### Step 3 — CORS (automatic configuration)
 
-El backend ya lee `CORS_ORIGINS` desde el entorno. `render.yaml` lo setea a
-`https://pyfinflow-ai.vercel.app`. Si cambió la URL de Vercel, actualizar esa var.
+The backend reads `CORS_ORIGINS` from the environment. `render.yaml` sets it to
+`https://pyfinflow-ai.vercel.app`. If the Vercel URL changes, update that var.
 
-#### Paso 4 — Test público
+#### Step 4 — Public test
 
-1. `register` + login (demo123)
-2. Crear una transacción
-3. Ver alertas de presupuesto
-4. Importar `assets/demo_import.csv`
-5. Chatear con la IA (si configuraste cloud keys)
+1. Open the app → click **"Explore demo"** (public registration is disabled)
+2. Create a transaction
+3. Check budget alerts
+4. Import `assets/demo_import.csv`
+5. Chat with the AI (if you configured cloud keys)
 
-**Legacy Streamlit** deprecado (no recomendado).
+**Legacy Streamlit** deprecated (not recommended).
 
 ---
 
@@ -238,12 +238,12 @@ pyfinflow-AI/
 │   ├── services/         # budget_alerts, csv_import
 │   └── repositories/     # Repository Pattern (postgres_repo, factory)
 ├── frontend/             # Next.js 16 + React 19 + Tailwind v4 + next-intl (es/en)
-├── alembic/              # Migraciones (001_initial_schema, 002_chat_messages)
-├── tests/unit/           # 221 tests
-├── scripts/seed_demo.py  # Datos demo (~70 txns, presupuestos, metas)
+├── alembic/              # Migrations (001_initial_schema, 002_chat_messages)
+├── tests/unit/           # 224 tests
+├── scripts/seed_demo.py  # Demo data (~70 txns, budgets, goals)
 ├── docker-compose.yml    # app + PostgreSQL + Redis + ChromaDB
 ├── pyproject.toml        # ruff + pytest
-└── ROADMAP_SAAS.md       # Roadmap Fases 0-10
+└── ROADMAP_SAAS.md       # Roadmap Phases 0-10
 ```
 
 ---
@@ -266,43 +266,43 @@ pyfinflow-AI/
 
 ```sql
 -- Transactions
-CREATE TABLE transacciones (
+CREATE TABLE transactions (
     id TEXT PRIMARY KEY,
-    tipo TEXT NOT NULL,
-    monto REAL NOT NULL,
-    categoria TEXT NOT NULL,
-    descripcion TEXT,
-    fecha TEXT NOT NULL,
-    moneda TEXT DEFAULT 'ARS',
+    type TEXT NOT NULL,
+    amount REAL NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT,
+    date TEXT NOT NULL,
+    currency TEXT DEFAULT 'ARS',
     user_id TEXT,
     created_at TEXT
 );
 
 -- Budgets
-CREATE TABLE presupuestos (
+CREATE TABLE budgets (
     id INTEGER PRIMARY KEY,
     user_id TEXT,
-    categoria TEXT NOT NULL,
-    limite REAL NOT NULL
+    category TEXT NOT NULL,
+    limit_amount REAL NOT NULL
 );
 
 -- Savings Goals
-CREATE TABLE metas_ahorro (
+CREATE TABLE savings_goals (
     id TEXT PRIMARY KEY,
     user_id TEXT,
-    nombre TEXT NOT NULL,
-    objetivo REAL NOT NULL,
-    ahorrado REAL DEFAULT 0,
-    fecha_limite TEXT,
-    categoria TEXT
+    name TEXT NOT NULL,
+    target REAL NOT NULL,
+    saved REAL DEFAULT 0,
+    deadline TEXT,
+    category TEXT
 );
 
 -- Custom Categories
-CREATE TABLE categorias_custom (
+CREATE TABLE custom_categories (
     id INTEGER PRIMARY KEY,
     user_id TEXT,
-    tipo TEXT NOT NULL,
-    nombre TEXT NOT NULL
+    type TEXT NOT NULL,
+    name TEXT NOT NULL
 );
 ```
 
@@ -332,21 +332,21 @@ response = consultar_ia_local(question, context)
 
 ```bash
 # Run all tests
-pytest tests/ -v
+python -m pytest tests/ -v
 
 # With coverage
-pytest tests/ -v --cov=app --cov-report=html
+python -m pytest tests/ -v --cov=app --cov-report=html
 
 # Run specific test file
-pytest tests/unit/test_formatters.py -v
+python -m pytest tests/unit/test_formatters.py -v
 ```
 
-**Results:** 221 tests passing ✅
+**Results:** 224 tests passing ✅
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
 | `test_auth.py` | 18 | bcrypt, JWT, rate limiting, roles |
-| `test_api.py` | 30 | All REST endpoints (auth, transactions, budgets, goals, metrics) |
+| `test_api.py` | 34 | All REST endpoints (auth, transactions, budgets, goals, metrics, demo login) |
 | `test_ai_api.py` | 10 | AI endpoints (chat, history, insights, suggestions, status) |
 | `test_ai.py` | 30 | Providers, fallback, analytics, chat memory |
 | `test_repositories.py` | 13 | CRUD operations (users, transactions, budgets, goals) |
@@ -357,8 +357,8 @@ pytest tests/unit/test_formatters.py -v
 | `test_config.py` | 11 | Settings types and defaults |
 | `test_cache.py` | 7 | Redis fallback, rate limiting |
 | `test_metrics.py` | 6 | Request tracking, Prometheus format |
-| `test_budget_alerts.py` + `test_budget_alerts_api.py` | 21 | Alertas 80%/100% presupuesto |
-| `test_csv_import.py` + `test_csv_import_api.py` | 18 | Import CSV (EU/US, ;/, aliases) |
+| `test_budget_alerts.py` + `test_budget_alerts_api.py` | 21 | Budget alerts 80%/100% |
+| `test_csv_import.py` + `test_csv_import_api.py` | 18 | CSV import (EU/US, ;/, aliases) |
 
 ---
 
@@ -384,6 +384,8 @@ python scripts/seed_demo.py
 # Login: POST /auth/login → {"username": "demo", "password": "demo123"}
 ```
 
+> In the public demo, clicking **"Explore demo"** on the login page creates/logs the demo account automatically (endpoint `POST /auth/demo`).
+
 ### API Documentation
 
 Once running, visit:
@@ -394,15 +396,15 @@ Once running, visit:
 
 ## 🔮 Roadmap
 
-- [x] Multi-currency (ARS, USD, EUR, BRL) — Fase 7
-- [x] API documentation (Swagger/ReDoc) — Fase 3
+- [x] Multi-currency (ARS, USD, EUR, BRL) — Phase 7
+- [x] API documentation (Swagger/ReDoc) — Phase 3
 - [x] Demo seed data — `scripts/seed_demo.py`
-- [x] 221 tests + Ruff 0 — Fase 4-5
-- [x] Alerts presupuesto 80%/100% — Fase 8.1
-- [x] Import CSV (EU/US, 2MB/1000 filas) — Fase 8.2
-- [ ] Deploy a producción (Vercel + Render) — Fase 10
-- [ ] PWA offline — Fase 8.3
-- [ ] Export Excel/PDF — Fase 8.2
+- [x] 224 tests + Ruff 0 — Phase 4-5
+- [x] Budget alerts 80%/100% — Phase 8.1
+- [x] CSV import (EU/US, 2MB/1000 rows) — Phase 8.2
+- [x] Production deploy (Vercel + Render) — Phase 10
+- [ ] PWA offline — Phase 8.3
+- [ ] Excel/PDF export — Phase 8.2
 
 ---
 
