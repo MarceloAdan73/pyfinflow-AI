@@ -43,7 +43,10 @@
       "submit": "Iniciar Sesión",
       "noAccount": "¿No tenés cuenta?",
       "register": "Registrate",
-      "error": "Error al iniciar sesión"
+      "error": "Error al iniciar sesión",
+      "demoTitle": "Acceso de demostración",
+      "demoButton": "Explorar demo",
+      "demoHint": "Sin registro: ingresá con datos de ejemplo"
     },
     "register": {
       "title": "Crear Cuenta",

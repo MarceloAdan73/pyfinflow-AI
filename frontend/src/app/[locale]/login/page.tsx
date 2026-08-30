@@ -18,7 +18,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { doLogin } = useAuth();
+  const [demoLoading, setDemoLoading] = useState(false);
+  const { doLogin, doDemoLogin } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +33,19 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : t("error"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDemo = async () => {
+    setError("");
+    setDemoLoading(true);
+    try {
+      await doDemoLogin();
+      router.replace(`/${locale}/dashboard`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("error"));
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -88,6 +102,27 @@ export default function LoginPage() {
                 t("submit")
               )}
             </Button>
+
+            <div className="flex w-full items-center gap-3 text-xs text-muted-foreground">
+              <div className="h-px flex-1 bg-border" />
+              <span>{t("demoTitle")}</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={demoLoading}
+              onClick={handleDemo}
+            >
+              {demoLoading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                t("demoButton")
+              )}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
             <p className="text-sm text-muted-foreground">
               {t("noAccount")}{" "}
               <Link href={`/${locale}/register`} className="text-primary hover:underline">

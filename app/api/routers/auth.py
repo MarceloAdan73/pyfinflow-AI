@@ -70,6 +70,116 @@ def register(
     )
 
 
+DEMO_USERNAME = "demo"
+DEMO_PASSWORD = "demo123"
+
+
+def _seed_demo_data(user_id: str, repos: RepositoryFactory):
+    """Carga datos de ejemplo para la cuenta demo (solo si no tiene transacciones)."""
+    import random
+    from datetime import date, timedelta
+
+    if repos.transactions.get_all({"user_id": user_id}):
+        return
+
+    today = date.today()
+    mes = today.strftime("%Y-%m")
+
+    ingresos = [
+        ("Salario", 850000.0, "Salario mensual"),
+        ("Freelance", 120000.0, "Proyecto freelance"),
+        ("Inversiones", 35000.0, "Dividendos"),
+    ]
+    gastos = [
+        ("Comida", 180000.0, "Supermercado mensual"),
+        ("Vivienda", 220000.0, "Alquiler"),
+        ("Transporte", 45000.0, "Nafta y transporte"),
+        ("Servicios", 60000.0, "Luz, agua, internet"),
+        ("Ocio", 30000.0, "Salidas y entretenimiento"),
+    ]
+
+    for categoria, monto, desc in ingresos:
+        repos.transactions.create({
+            "user_id": user_id,
+            "tipo": "Ingreso",
+            "monto": monto,
+            "categoria": categoria,
+            "descripcion": desc,
+            "fecha": (today - timedelta(days=random.randint(0, 12))).strftime("%Y-%m-%d"),
+        })
+
+    for categoria, monto, desc in gastos:
+        repos.transactions.create({
+            "user_id": user_id,
+            "tipo": "Gasto",
+            "monto": monto,
+            "categoria": categoria,
+            "descripcion": desc,
+            "fecha": (today - timedelta(days=random.randint(0, 20))).strftime("%Y-%m-%d"),
+        })
+
+    repos.budgets.upsert(user_id, "Comida", mes, 200000.0)
+    repos.budgets.upsert(user_id, "Vivienda", mes, 250000.0)
+    repos.budgets.upsert(user_id, "Transporte", mes, 60000.0)
+    repos.budgets.upsert(user_id, "Ocio", mes, 50000.0)
+
+    repos.goals.create({
+        "user_id": user_id,
+        "nombre": "Fondo de emergencia",
+        "objetivo": 1000000.0,
+        "ahorrado": 450000.0,
+        "fecha_limite": (today + timedelta(days=180)).strftime("%Y-%m-%d"),
+        "categoria": "Ahorro",
+    })
+    repos.goals.create({
+        "user_id": user_id,
+        "nombre": "Viaje a Europa",
+        "objetivo": 2500000.0,
+        "ahorrado": 800000.0,
+        "fecha_limite": (today + timedelta(days=365)).strftime("%Y-%m-%d"),
+        "categoria": "Viajes",
+    })
+
+
+@router.post(
+    "/demo",
+    response_model=TokenResponse,
+    summary="Iniciar sesión demonístración (cuenta demo)",
+    response_description="Tokens JWT de la cuenta demo",
+)
+def demo_login(
+    request: Request,
+    repos: RepositoryFactory = Depends(get_repositories),
+):
+    """Loguea (o crea y loguea) la cuenta demo con datos de ejemplo.
+
+    Devuelve tokens JWT listos para usar. La cuenta `demo/demo123` se crea
+    automáticamente con transacciones, presupuestos y metas de ejemplo en
+    la primera llamada.
+    """
+    existing = repos.users.get_by_username(DEMO_USERNAME)
+    if existing:
+        user_id = existing["id"]
+    else:
+        user = repos.users.create({
+            "id": f"user_{uuid.uuid4().hex[:16]}",
+            "username": DEMO_USERNAME,
+            "password_hash": hash_password(DEMO_PASSWORD),
+            "role": "USER",
+        })
+        user_id = user["id"]
+
+    _seed_demo_data(user_id, repos)
+
+    role = "USER"
+    access_token = crear_access_token(user_id, DEMO_USERNAME, role)
+    refresh_token = crear_refresh_token(user_id)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
+
+
 @router.post(
     "/login",
     response_model=TokenResponse,

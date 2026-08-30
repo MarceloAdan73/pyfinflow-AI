@@ -43,7 +43,10 @@
       "submit": "Sign In",
       "noAccount": "Don't have an account?",
       "register": "Sign up",
-      "error": "Error signing in"
+      "error": "Error signing in",
+      "demoTitle": "Demo access",
+      "demoButton": "Explore demo",
+      "demoHint": "No signup: see it with sample data"
     },
     "register": {
       "title": "Create Account",

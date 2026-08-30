@@ -33,6 +33,15 @@ export function useAuth() {
     return userRes;
   };
 
+  const doDemoLogin = async () => {
+    const data = await api<{ access_token: string; refresh_token: string; token_type: string }>("/auth/demo", {
+      method: "POST",
+    });
+    const userRes = await api<User>("/auth/me", { token: data.access_token });
+    login(data, userRes);
+    return userRes;
+  };
+
   const doRegister = async (username: string, password: string) => {
     const data = await api<{ access_token: string; refresh_token: string; token_type: string }>("/auth/register", {
       method: "POST",
@@ -48,5 +57,5 @@ export function useAuth() {
     router.push(`/${locale}/login`);
   };
 
-  return { user, isAuthenticated, doLogin, doRegister, doLogout };
+  return { user, isAuthenticated, doLogin, doRegister, doDemoLogin, doLogout };
 }

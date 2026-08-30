@@ -406,3 +406,40 @@ def test_metrics_prometheus(client):
     assert response.status_code == 200
     assert response.text.startswith("# HELP")
     assert "pyfinflow_uptime_seconds" in response.text
+
+
+# ============================
+# DEMO LOGIN
+# ============================
+
+def test_demo_login_crea_usuario_y_devuelve_tokens(client):
+    response = client.post("/auth/demo")
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "bearer"
+
+
+def test_demo_seed_crea_datos_de_ejemplo(client):
+    from datetime import date
+
+    headers = get_demo_auth_header(client)
+    txns = client.get("/transactions", headers=headers)
+    assert txns.status_code == 200
+    assert len(txns.json()) > 0
+
+    mes = date.today().strftime("%Y-%m")
+    budgets = client.get(f"/budgets?mes={mes}", headers=headers)
+    assert budgets.status_code == 200
+    assert len(budgets.json()) > 0
+
+    goals = client.get("/goals", headers=headers)
+    assert goals.status_code == 200
+    assert len(goals.json()) > 0
+
+
+def get_demo_auth_header(client):
+    demo = client.post("/auth/demo")
+    token = demo.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
