@@ -83,36 +83,34 @@ export default function DashboardPage() {
       <PageTransition>
         <StaggerContainer className="space-y-6">
           <StaggerItem>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{t("title")}</h1>
                 <p className="text-muted-foreground">{t("description")}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex items-center gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("from")}</Label>
-                      <Input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-36 text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t("to")}</Label>
-                      <Input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="w-36 text-xs"
-                      />
-                    </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex items-end gap-2">
+                  <div className="space-y-1">
+                    <Label className="block text-xs text-muted-foreground">{t("from")}</Label>
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-36 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="block text-xs text-muted-foreground">{t("to")}</Label>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-36 text-xs"
+                    />
                   </div>
                   {(dateFrom || dateTo) && (
-                    <Button variant="ghost" size="sm" onClick={clearDates} className="mt-4">
+                    <Button variant="ghost" size="sm" onClick={clearDates}>
                       {tc("clear")}
                     </Button>
                   )}

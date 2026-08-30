@@ -56,7 +56,7 @@ export function RecentTransactions({ transactions, isLoading, currency }: Props)
                 key={txn.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
                       txn.tipo === "Ingreso"
@@ -66,15 +66,15 @@ export function RecentTransactions({ transactions, isLoading, currency }: Props)
                   >
                     {txn.tipo === "Ingreso" ? "+" : "-"}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{txn.descripcion || txn.categoria}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{txn.descripcion || txn.categoria}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {txn.categoria} · {formatDate(txn.fecha)}
                     </p>
                   </div>
                 </div>
                 <span
-                  className={`text-sm font-semibold ${
+                  className={`text-sm font-semibold shrink-0 ${
                     txn.tipo === "Ingreso" ? "text-emerald-400" : "text-red-400"
                   }`}
                 >

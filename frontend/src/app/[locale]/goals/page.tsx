@@ -66,12 +66,12 @@ export default function GoalsPage() {
       <PageTransition>
         <StaggerContainer className="space-y-6">
           <StaggerItem>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{t("title")}</h1>
                 <p className="text-muted-foreground">{t("description")}</p>
               </div>
-              <Button onClick={openCreate} className="gap-2">
+              <Button onClick={openCreate} className="gap-2 shrink-0">
                 <Plus className="h-4 w-4" /> {t("new")}
               </Button>
             </div>
@@ -143,7 +143,7 @@ export default function GoalsPage() {
                               <Input
                                 type="number"
                                 placeholder={t("addFunds")}
-                                className="h-8 text-xs"
+                                className="h-8 text-xs flex-1 min-w-0"
                                 id={`add-${goal.id}`}
                               />
                               <Button
@@ -189,7 +189,7 @@ export default function GoalsPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("target")}</Label>
                 <Input

@@ -76,7 +76,7 @@ export default function ChatPage() {
   return (
     <DashboardLayout>
       <PageTransition>
-        <div className="flex flex-col h-[calc(100vh-6rem)]">
+        <div className="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-6rem)]">
           <div className="mb-4">
             <h1 className="text-2xl font-bold">{t("title")}</h1>
             <p className="text-muted-foreground">{t("description")}</p>

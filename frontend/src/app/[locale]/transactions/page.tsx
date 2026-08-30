@@ -134,7 +134,7 @@ export default function TransactionsPage() {
       <PageTransition>
         <StaggerContainer className="space-y-6">
           <StaggerItem>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{t("title")}</h1>
                 <p className="text-muted-foreground">{t("description")}</p>
@@ -153,8 +153,8 @@ export default function TransactionsPage() {
           <StaggerItem>
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 max-w-xs">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-2">
+                  <div className="relative flex-1 max-w-xs w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       value={search}
@@ -163,26 +163,28 @@ export default function TransactionsPage() {
                       className="pl-9"
                     />
                   </div>
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <Select
-                    value={filters.tipo || ""}
-                    onChange={(e) => setFilters((f) => ({ ...f, tipo: e.target.value }))}
-                    className="w-40"
-                  >
-                    <option value="">{t("filterAll")}</option>
-                    <option value="Ingreso">{t("filterIncome")}</option>
-                    <option value="Gasto">{t("filterExpenses")}</option>
-                  </Select>
-                  <Select
-                    value={filters.categoria || ""}
-                    onChange={(e) => setFilters((f) => ({ ...f, categoria: e.target.value }))}
-                    className="w-48"
-                  >
-                    <option value="">{t("allCategories")}</option>
-                    {categorias.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <Select
+                      value={filters.tipo || ""}
+                      onChange={(e) => setFilters((f) => ({ ...f, tipo: e.target.value }))}
+                      className="w-40"
+                    >
+                      <option value="">{t("filterAll")}</option>
+                      <option value="Ingreso">{t("filterIncome")}</option>
+                      <option value="Gasto">{t("filterExpenses")}</option>
+                    </Select>
+                    <Select
+                      value={filters.categoria || ""}
+                      onChange={(e) => setFilters((f) => ({ ...f, categoria: e.target.value }))}
+                      className="w-48 flex-1"
+                    >
+                      <option value="">{t("allCategories")}</option>
+                      {categorias.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -203,7 +205,7 @@ export default function TransactionsPage() {
                         key={txn.id}
                         className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div
                             className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold ${
                               txn.tipo === "Ingreso"
@@ -213,14 +215,14 @@ export default function TransactionsPage() {
                           >
                             {txn.tipo === "Ingreso" ? "+" : "-"}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium">{txn.descripcion || txn.categoria}</p>
-                            <p className="text-xs text-muted-foreground">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{txn.descripcion || txn.categoria}</p>
+                            <p className="text-xs text-muted-foreground truncate">
                               {txn.categoria} · {formatDate(txn.fecha)}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 shrink-0">
                           <span
                             className={`text-sm font-semibold ${
                               txn.tipo === "Ingreso" ? "text-emerald-400" : "text-red-400"
@@ -228,7 +230,7 @@ export default function TransactionsPage() {
                           >
                             {txn.tipo === "Ingreso" ? "+" : "-"}{formatMoney(txn.monto)}
                           </span>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(txn)}>
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -253,7 +255,7 @@ export default function TransactionsPage() {
             <DialogTitle>{editingId ? t("editTitle") : t("newTitle")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("type")}</Label>
                 <Select
@@ -276,7 +278,7 @@ export default function TransactionsPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("category")}</Label>
                 <Select

@@ -70,7 +70,7 @@ export default function BudgetsPage() {
       <PageTransition>
         <StaggerContainer className="space-y-6">
           <StaggerItem>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-2xl font-bold">{t("title")}</h1>
                 <p className="text-muted-foreground">{t("description")}</p>
@@ -82,7 +82,7 @@ export default function BudgetsPage() {
                   onChange={(e) => setMes(e.target.value)}
                   className="w-44"
                 />
-                <Button onClick={() => { setForm((f) => ({ ...f, mes })); setDialogOpen(true); }} className="gap-2">
+                <Button onClick={() => { setForm((f) => ({ ...f, mes })); setDialogOpen(true); }} className="gap-2 shrink-0">
                   <Plus className="h-4 w-4" /> {t("new")}
                 </Button>
               </div>
