@@ -9,6 +9,7 @@ import {
   PiggyBank,
   Target,
   Bot,
+  Settings,
 } from "lucide-react";
 
 export function BottomNav() {
@@ -22,13 +23,14 @@ export function BottomNav() {
     { href: `/${locale}/budgets`, label: t("budgets"), icon: PiggyBank },
     { href: `/${locale}/goals`, label: t("goals"), icon: Target },
     { href: `/${locale}/chat`, label: t("chat"), icon: Bot },
+    { href: `/${locale}/settings`, label: t("settings"), icon: Settings },
   ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {items.map((item) => {
           const active = isActive(item.href);
           return (

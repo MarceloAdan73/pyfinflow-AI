@@ -164,6 +164,17 @@
       "currencyTitle": "Moneda",
       "currencyDescription": "Seleccioná la moneda para mostrar montos"
     },
+    "preferences": {
+      "title": "Preferencias",
+      "description": "Personalizá la apariencia y el idioma de la aplicación",
+      "language": "Idioma",
+      "languageDescription": "Cambiá el idioma de la interfaz",
+      "theme": "Tema",
+      "themeDescription": "Alterná entre modo claro y oscuro"
+    },
+    "session": {
+      "description": "Cerrá tu sesión en este dispositivo"
+    },
     "security": {
       "title": "Seguridad",
       "description": "Cambiar contraseña",

@@ -164,6 +164,17 @@
       "currencyTitle": "Currency",
       "currencyDescription": "Select the currency to display amounts"
     },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Customize the app appearance and language",
+      "language": "Language",
+      "languageDescription": "Change the interface language",
+      "theme": "Theme",
+      "themeDescription": "Switch between light and dark mode"
+    },
+    "session": {
+      "description": "End your session on this device"
+    },
     "security": {
       "title": "Security",
       "description": "Change password",

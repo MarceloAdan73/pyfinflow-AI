@@ -13,10 +13,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
 import { CURRENCIES, type CurrencyCode } from "@/lib/utils";
 import { useCurrency } from "@/lib/use-currency";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import type { AIProviderSettings, AIStatusResponse } from "@/types";
 import {
   User, Key, Bot, Save, Loader2, CheckCircle2, XCircle,
-  Settings, Zap, Server, Brain, DollarSign,
+  Settings, Zap, Server, Brain, DollarSign, Palette, LogOut,
 } from "lucide-react";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { useTranslations } from "next-intl";
@@ -26,8 +28,11 @@ export default function SettingsPage() {
   const tProfile = useTranslations("settings.profile");
   const tSecurity = useTranslations("settings.security");
   const tAi = useTranslations("settings.ai");
+  const tPref = useTranslations("settings.preferences");
+  const tSession = useTranslations("settings.session");
+  const tn = useTranslations("nav");
   const tc = useTranslations("common");
-  const { user } = useAuth();
+  const { user, doLogout } = useAuth();
   const [aiSettings, setAiSettings] = useState<AIProviderSettings | null>(null);
   const [aiStatus, setAiStatus] = useState<AIStatusResponse | null>(null);
   const [saving, setSaving] = useState(false);
@@ -184,6 +189,62 @@ export default function SettingsPage() {
                     </option>
                   ))}
                 </Select>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+
+          {/* Preferences */}
+          <StaggerItem>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Palette className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{tPref("title")}</CardTitle>
+                    <CardDescription>{tPref("description")}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">{tPref("language")}</p>
+                    <p className="text-xs text-muted-foreground">{tPref("languageDescription")}</p>
+                  </div>
+                  <LanguageSelector />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium">{tPref("theme")}</p>
+                    <p className="text-xs text-muted-foreground">{tPref("themeDescription")}</p>
+                  </div>
+                  <ThemeToggle />
+                </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+
+          {/* Session */}
+          <StaggerItem>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/20 flex items-center justify-center">
+                    <LogOut className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{tn("logout")}</CardTitle>
+                    <CardDescription>{tSession("description")}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button variant="destructive" onClick={doLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {tn("logout")}
+                </Button>
               </CardContent>
             </Card>
           </StaggerItem>
